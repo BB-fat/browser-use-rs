@@ -60,6 +60,7 @@ The codebase is organized into five main modules:
 - All tools implement the `Tool` trait with type-safe parameter structs (e.g., `ClickParams`, `NavigateParams`)
 - `ToolRegistry` manages tools and executes them with `ToolContext` (contains `BrowserSession` + optional cached `DomTree`)
 - Element selection: tools accept either CSS selectors OR numeric indices (from `SelectorMap`)
+- **⚠️ IMPORTANT: When adding a new tool, remember to register it in `src/mcp/mod.rs` using the `register_mcp_tools!` macro**
 
 **4. `mcp/` - Model Context Protocol Server**
 - `handler.rs`: `BrowserServer` wraps `BrowserSession` in `Arc<Mutex<>>` for thread-safe MCP access
