@@ -6,3 +6,6 @@ edition = "2024"
 [dependencies]
 headless_chrome = "1.0.18"
 rmcp = "0.8.5"
+thiserror = "2.0"
+serde_json = "1.0"
+anyhow = "1.0"

@@ -77,8 +77,11 @@ dependencies = [
 name = "browser-use"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "headless_chrome",
  "rmcp",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
