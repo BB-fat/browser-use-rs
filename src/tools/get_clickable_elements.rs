@@ -45,7 +45,7 @@ impl Tool for GetClickableElementsTool {
         for &index in &indices {
             if let Some(node) = dom.find_node_by_index(index) {
                 let tag_name = &node.tag_name;
-                
+
                 // Get text content, truncate if too long
                 let text_content = if let Some(text) = &node.text_content {
                     let trimmed = text.trim();
@@ -82,8 +82,8 @@ impl Tool for GetClickableElementsTool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dom::ElementNode;
     use crate::dom::DomTree;
+    use crate::dom::ElementNode;
 
     #[test]
     fn test_get_clickable_elements_params() {
@@ -105,7 +105,7 @@ mod tests {
         // Create a minimal DOM tree with no interactive elements
         let root = ElementNode::new("body");
         let dom_tree = DomTree::new(root);
-        
+
         // We can't easily test execute_typed without a real BrowserSession
         // but we can verify the structure is correct
         assert_eq!(dom_tree.count_interactive(), 0);

@@ -38,12 +38,12 @@ impl Tool for GetMarkdownTool {
             .map_err(|e| BrowserError::EvaluationFailed(e.to_string()))?;
 
         // Parse the result
-        let result_value = result.value.ok_or_else(|| {
-            BrowserError::ToolExecutionFailed {
+        let result_value = result
+            .value
+            .ok_or_else(|| BrowserError::ToolExecutionFailed {
                 tool: "get_markdown".to_string(),
                 reason: "No value returned from JavaScript".to_string(),
-            }
-        })?;
+            })?;
 
         // The JavaScript returns a JSON string, so we need to parse it
         let content_data: MarkdownContent = if let Some(json_str) = result_value.as_str() {
@@ -53,11 +53,9 @@ impl Tool for GetMarkdownTool {
             })?
         } else {
             // If it's already an object, try to deserialize directly
-            serde_json::from_value(result_value).map_err(|e| {
-                BrowserError::ToolExecutionFailed {
-                    tool: "get_markdown".to_string(),
-                    reason: format!("Failed to deserialize markdown content: {}", e),
-                }
+            serde_json::from_value(result_value).map_err(|e| BrowserError::ToolExecutionFailed {
+                tool: "get_markdown".to_string(),
+                reason: format!("Failed to deserialize markdown content: {}", e),
             })?
         };
 

@@ -12,9 +12,7 @@ use std::io::{stdin, stdout};
 #[cfg(feature = "mcp-server")]
 use rmcp::transport::{
     sse_server::{SseServer, SseServerConfig},
-    streamable_http_server::{
-        StreamableHttpService, session::local::LocalSessionManager,
-    },
+    streamable_http_server::{StreamableHttpService, session::local::LocalSessionManager},
 };
 
 #[cfg(feature = "mcp-server")]
@@ -132,7 +130,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             eprintln!("SSE POST path: {}", cli.sse_post_path);
 
             let bind_addr = format!("127.0.0.1:{}", cli.port);
-            
+
             // Create SSE server configuration
             let config = SseServerConfig {
                 bind: bind_addr.parse()?,

@@ -79,7 +79,7 @@ fn test_selector_map() {
 #[test]
 #[ignore]
 fn test_get_markdown() {
-    use browser_use::tools::{markdown::GetMarkdownTool, Tool, ToolContext};
+    use browser_use::tools::{Tool, ToolContext, markdown::GetMarkdownTool};
 
     let session = BrowserSession::launch(LaunchOptions::new().headless(true))
         .expect("Failed to launch browser");
@@ -100,7 +100,7 @@ fn test_get_markdown() {
         </body>
         </html>
     "#;
-    
+
     session
         .navigate(&format!("data:text/html,{}", html))
         .expect("Failed to navigate");
@@ -131,31 +131,42 @@ fn test_get_markdown() {
 
     // Verify content
     assert_eq!(title, "Test Page");
-    assert!(markdown.contains("# Test Page"), "Missing title in markdown");
-    assert!(markdown.contains("Main Title"), "Missing 'Main Title' in markdown");
-    
+    assert!(
+        markdown.contains("# Test Page"),
+        "Missing title in markdown"
+    );
+    assert!(
+        markdown.contains("Main Title"),
+        "Missing 'Main Title' in markdown"
+    );
+
     // Check for bold/italic formatting (may vary based on JS implementation)
     let has_bold = markdown.contains("**test**") || markdown.contains("test");
     let has_italic = markdown.contains("*emphasis*") || markdown.contains("emphasis");
     assert!(has_bold, "Missing 'test' (bold or plain) in markdown");
-    assert!(has_italic, "Missing 'emphasis' (italic or plain) in markdown");
-    
-    assert!(markdown.contains("Section 2"), "Missing 'Section 2' in markdown");
-    
+    assert!(
+        has_italic,
+        "Missing 'emphasis' (italic or plain) in markdown"
+    );
+
+    assert!(
+        markdown.contains("Section 2"),
+        "Missing 'Section 2' in markdown"
+    );
+
     // Check for list items (may be formatted differently)
     let has_list_items = markdown.contains("Item 1") && markdown.contains("Item 2");
     assert!(has_list_items, "Missing list items in markdown");
-    
+
     // Check for link (may be formatted differently)
     let has_link = markdown.contains("Example Link");
     assert!(has_link, "Missing 'Example Link' in markdown");
 }
 
-
 #[test]
 #[ignore]
 fn test_read_links() {
-    use browser_use::tools::{read_links::ReadLinksTool, ReadLinksParams, Tool, ToolContext};
+    use browser_use::tools::{ReadLinksParams, Tool, ToolContext, read_links::ReadLinksTool};
 
     let session = BrowserSession::launch(LaunchOptions::new().headless(true))
         .expect("Failed to launch browser");
@@ -170,7 +181,7 @@ fn test_read_links() {
         "<a href=\"\">Empty</a>",
         "</body></html>"
     );
-    
+
     session
         .navigate(&format!("data:text/html,{}", html))
         .expect("Failed navigate");
@@ -191,25 +202,26 @@ fn test_read_links() {
 
     println!("Links found: {}", count);
     for link in links {
-        println!("  {} -> {}", 
-            link["text"].as_str().unwrap_or(""), 
-            link["href"].as_str().unwrap_or(""));
+        println!(
+            "  {} -> {}",
+            link["text"].as_str().unwrap_or(""),
+            link["href"].as_str().unwrap_or("")
+        );
     }
 
     // Due to data: URL limitations, we may not get all links
     assert!(count >= 2, "Expected at least 2 links");
     assert_eq!(links.len() as u64, count);
-    
-    let texts: Vec<&str> = links.iter()
-        .filter_map(|l| l["text"].as_str())
-        .collect();
-    
+
+    let texts: Vec<&str> = links.iter().filter_map(|l| l["text"].as_str()).collect();
+
     // Verify the links we do get are correct
     assert!(texts.contains(&"Example"));
     assert!(texts.contains(&"Relative"));
-    
+
     // Verify href values
-    let ex_link = links.iter()
+    let ex_link = links
+        .iter()
         .find(|l| l["text"].as_str() == Some("Example"))
         .expect("Example link not found");
     assert_eq!(ex_link["href"].as_str(), Some("https://example.com"));
@@ -218,7 +230,10 @@ fn test_read_links() {
 #[test]
 #[ignore]
 fn test_get_clickable_elements() {
-    use browser_use::tools::{get_clickable_elements::GetClickableElementsTool, GetClickableElementsParams, Tool, ToolContext};
+    use browser_use::tools::{
+        GetClickableElementsParams, Tool, ToolContext,
+        get_clickable_elements::GetClickableElementsTool,
+    };
 
     let session = BrowserSession::launch(LaunchOptions::new().headless(true))
         .expect("Failed to launch browser");
@@ -240,7 +255,7 @@ fn test_get_clickable_elements() {
         </body>
         </html>
     "#;
-    
+
     session
         .navigate(&format!("data:text/html,{}", html))
         .expect("Failed to navigate");
@@ -283,7 +298,10 @@ fn test_get_clickable_elements() {
 #[test]
 #[ignore]
 fn test_get_clickable_elements_empty() {
-    use browser_use::tools::{get_clickable_elements::GetClickableElementsTool, GetClickableElementsParams, Tool, ToolContext};
+    use browser_use::tools::{
+        GetClickableElementsParams, Tool, ToolContext,
+        get_clickable_elements::GetClickableElementsTool,
+    };
 
     let session = BrowserSession::launch(LaunchOptions::new().headless(true))
         .expect("Failed to launch browser");
@@ -299,7 +317,7 @@ fn test_get_clickable_elements_empty() {
         </body>
         </html>
     "#;
-    
+
     session
         .navigate(&format!("data:text/html,{}", html))
         .expect("Failed to navigate");
@@ -319,7 +337,7 @@ fn test_get_clickable_elements_empty() {
     let elements = data["elements"].as_str().expect("No elements field");
 
     println!("Empty page - count: {}, elements: '{}'", count, elements);
-    
+
     // Should have 0 interactive elements
     assert_eq!(count, 0);
     assert_eq!(elements, "");
@@ -328,7 +346,10 @@ fn test_get_clickable_elements_empty() {
 #[test]
 #[ignore]
 fn test_get_clickable_elements_with_text() {
-    use browser_use::tools::{get_clickable_elements::GetClickableElementsTool, GetClickableElementsParams, Tool, ToolContext};
+    use browser_use::tools::{
+        GetClickableElementsParams, Tool, ToolContext,
+        get_clickable_elements::GetClickableElementsTool,
+    };
 
     let session = BrowserSession::launch(LaunchOptions::new().headless(true))
         .expect("Failed to launch browser");
@@ -342,7 +363,7 @@ fn test_get_clickable_elements_with_text() {
         "</body>",
         "</html>"
     );
-    
+
     session
         .navigate(&format!("data:text/html,{}", html))
         .expect("Failed to navigate");
@@ -362,15 +383,15 @@ fn test_get_clickable_elements_with_text() {
     let count = data["count"].as_u64().expect("No count field");
 
     println!("Elements with text:\n{}", elements_string);
-    
+
     assert!(count >= 1, "Expected at least 1 interactive element");
-    
+
     // If we have elements, verify they contain text content
     if count > 0 {
         // Should contain the tag names
         let has_button = elements_string.contains("button");
         let has_link = elements_string.contains("a");
-        
+
         assert!(has_button || has_link, "Expected button or link elements");
     }
 }
