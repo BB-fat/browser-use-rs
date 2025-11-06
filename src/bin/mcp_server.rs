@@ -84,10 +84,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
-    // Create browser server
-    let service = BrowserServer::with_options(options.clone())
-        .map_err(|e| format!("Failed to create browser server: {}", e))?;
-
     eprintln!("Browser-use MCP Server v{}", env!("CARGO_PKG_VERSION"));
     eprintln!(
         "Browser mode: {}",
@@ -120,6 +116,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             eprintln!("Transport: stdio");
             eprintln!("Ready to accept MCP connections via stdio");
             let (_read, _write) = (stdin(), stdout());
+            let service = BrowserServer::with_options(options.clone())
+                .map_err(|e| format!("Failed to create browser server: {}", e))?;
             let server = service.serve(stdio()).await?;
             server.waiting().await?;
         }
