@@ -55,6 +55,10 @@ cargo run --bin mcp-server -- --headed
 - Rust 1.70+
 - Chrome or Chromium installed
 
+## Acknowledgments
+
+This project was inspired by and references [agent-infra/mcp-server-browser](https://github.com/bytedance/UI-TARS-desktop/tree/main/packages/agent-infra/mcp-servers/browser).
+
 ## License
 
 MIT
