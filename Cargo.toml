@@ -14,8 +14,10 @@ mcp-server = [
     "rmcp/macros",
     "rmcp/server",
     "rmcp/transport-io",
+    "rmcp/transport-streamable-http-server",
     "tokio",
     "clap",
+    "axum",
 ]
 
 [dependencies]
@@ -28,5 +30,12 @@ anyhow = "1.0"
 indexmap = { version = "2.0", features = ["serde"] }
 schemars = "1.1"
 async-trait = "0.1"
-tokio = { version = "1", features = ["rt", "macros", "sync"], optional = true }
+tokio = { version = "1", features = [
+    "rt",
+    "rt-multi-thread",
+    "macros",
+    "sync",
+    "net",
+], optional = true }
 clap = { version = "4.5", features = ["derive"], optional = true }
+axum = { version = "0.7", optional = true }
