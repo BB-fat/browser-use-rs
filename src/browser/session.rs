@@ -1,6 +1,7 @@
 use crate::error::{BrowserError, Result};
 use crate::browser::config::{LaunchOptions, ConnectionOptions};
 use crate::dom::DomTree;
+use crate::tools::{ToolRegistry, ToolContext};
 use headless_chrome::{Browser, Tab};
 use std::sync::Arc;
 
@@ -11,6 +12,9 @@ pub struct BrowserSession {
     
     /// The active tab for browser operations
     active_tab: Arc<Tab>,
+    
+    /// Tool registry for executing browser automation tools
+    tool_registry: ToolRegistry,
 }
 
 impl BrowserSession {
@@ -49,6 +53,7 @@ impl BrowserSession {
         Ok(Self {
             browser,
             active_tab,
+            tool_registry: ToolRegistry::with_defaults(),
         })
     }
 
@@ -69,6 +74,7 @@ impl BrowserSession {
         Ok(Self {
             browser,
             active_tab,
+            tool_registry: ToolRegistry::with_defaults(),
         })
     }
 
@@ -175,6 +181,22 @@ impl BrowserSession {
         self.active_tab
             .find_element(css_selector)
             .map_err(|e| BrowserError::ElementNotFound(format!("Element '{}' not found: {}", css_selector, e)))
+    }
+
+    /// Get the tool registry
+    pub fn tool_registry(&self) -> &ToolRegistry {
+        &self.tool_registry
+    }
+
+    /// Get mutable tool registry
+    pub fn tool_registry_mut(&mut self) -> &mut ToolRegistry {
+        &mut self.tool_registry
+    }
+
+    /// Execute a tool by name
+    pub fn execute_tool(&self, name: &str, params: serde_json::Value) -> Result<crate::tools::ToolResult> {
+        let mut context = ToolContext::new(self);
+        self.tool_registry.execute(name, params, &mut context)
     }
 }
 
