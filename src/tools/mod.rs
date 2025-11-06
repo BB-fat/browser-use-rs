@@ -6,6 +6,7 @@
 pub mod click;
 pub mod evaluate;
 pub mod extract;
+pub mod get_clickable_elements;
 pub mod input;
 pub mod markdown;
 pub mod navigate;
@@ -17,6 +18,7 @@ pub mod wait;
 pub use click::ClickParams;
 pub use evaluate::EvaluateParams;
 pub use extract::ExtractParams;
+pub use get_clickable_elements::GetClickableElementsParams;
 pub use input::InputParams;
 pub use markdown::GetMarkdownParams;
 pub use navigate::NavigateParams;
@@ -197,6 +199,7 @@ impl ToolRegistry {
         registry.register(wait::WaitTool);
         registry.register(markdown::GetMarkdownTool);
         registry.register(read_links::ReadLinksTool);
+        registry.register(get_clickable_elements::GetClickableElementsTool);
 
         registry
     }
@@ -288,7 +291,7 @@ mod tests {
         assert!(registry.has("input"));
         assert!(!registry.has("nonexistent"));
 
-        assert!(registry.count() >= 9); // At least 9 default tools
+        assert!(registry.count() >= 10); // At least 10 default tools
     }
 
     #[test]
@@ -298,5 +301,6 @@ mod tests {
 
         assert!(names.contains(&"navigate".to_string()));
         assert!(names.contains(&"click".to_string()));
+        assert!(names.contains(&"get_clickable_elements".to_string()));
     }
 }

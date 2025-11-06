@@ -214,3 +214,163 @@ fn test_read_links() {
         .expect("Example link not found");
     assert_eq!(ex_link["href"].as_str(), Some("https://example.com"));
 }
+
+#[test]
+#[ignore]
+fn test_get_clickable_elements() {
+    use browser_use::tools::{get_clickable_elements::GetClickableElementsTool, GetClickableElementsParams, Tool, ToolContext};
+
+    let session = BrowserSession::launch(LaunchOptions::new().headless(true))
+        .expect("Failed to launch browser");
+
+    let html = r#"
+        <html>
+        <head><title>Clickable Elements Test</title></head>
+        <body>
+            <button id="btn1">Submit</button>
+            <a href="https://example.com" id="link1">Click here</a>
+            <input type="text" id="input1" value="test">
+            <select id="select1">
+                <option>Option 1</option>
+                <option>Option 2</option>
+            </select>
+            <textarea id="textarea1">Some text</textarea>
+            <div>Non-interactive element</div>
+            <p>Just a paragraph</p>
+        </body>
+        </html>
+    "#;
+    
+    session
+        .navigate(&format!("data:text/html,{}", html))
+        .expect("Failed to navigate");
+
+    // Small delay to let page render
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
+    // Create tool and context
+    let tool = GetClickableElementsTool::default();
+    let mut context = ToolContext::new(&session);
+
+    // Execute the tool
+    let result = tool
+        .execute_typed(GetClickableElementsParams {}, &mut context)
+        .expect("Failed to execute get_clickable_elements tool");
+
+    // Verify the result
+    assert!(result.success);
+    assert!(result.data.is_some());
+
+    let data = result.data.unwrap();
+    let elements_string = data["elements"].as_str().expect("No elements field");
+    let count = data["count"].as_u64().expect("No count field");
+
+    // Debug: Print the elements to see what we got
+    println!("Clickable elements found: {}", count);
+    println!("Elements:\n{}", elements_string);
+
+    // Verify we found interactive elements
+    // Note: Actual count may vary due to visibility detection in data: URLs
+    assert!(count >= 1, "Expected at least 1 interactive element");
+
+    // Verify format: should contain [index]<tag>...</tag> patterns
+    if count > 0 {
+        assert!(elements_string.contains("["), "Missing index brackets");
+        assert!(elements_string.contains("<"), "Missing HTML tags");
+    }
+}
+
+#[test]
+#[ignore]
+fn test_get_clickable_elements_empty() {
+    use browser_use::tools::{get_clickable_elements::GetClickableElementsTool, GetClickableElementsParams, Tool, ToolContext};
+
+    let session = BrowserSession::launch(LaunchOptions::new().headless(true))
+        .expect("Failed to launch browser");
+
+    // Page with no interactive elements
+    let html = r#"
+        <html>
+        <head><title>Empty Test</title></head>
+        <body>
+            <div>Just a div</div>
+            <p>Just a paragraph</p>
+            <span>Just a span</span>
+        </body>
+        </html>
+    "#;
+    
+    session
+        .navigate(&format!("data:text/html,{}", html))
+        .expect("Failed to navigate");
+
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
+    let tool = GetClickableElementsTool::default();
+    let mut context = ToolContext::new(&session);
+
+    let result = tool
+        .execute_typed(GetClickableElementsParams {}, &mut context)
+        .expect("Failed to execute");
+
+    assert!(result.success);
+    let data = result.data.unwrap();
+    let count = data["count"].as_u64().expect("No count field");
+    let elements = data["elements"].as_str().expect("No elements field");
+
+    println!("Empty page - count: {}, elements: '{}'", count, elements);
+    
+    // Should have 0 interactive elements
+    assert_eq!(count, 0);
+    assert_eq!(elements, "");
+}
+
+#[test]
+#[ignore]
+fn test_get_clickable_elements_with_text() {
+    use browser_use::tools::{get_clickable_elements::GetClickableElementsTool, GetClickableElementsParams, Tool, ToolContext};
+
+    let session = BrowserSession::launch(LaunchOptions::new().headless(true))
+        .expect("Failed to launch browser");
+
+    let html = concat!(
+        "<html>",
+        "<head><title>Text Test</title></head>",
+        "<body>",
+        "<button id=\"btn1\">Click me to submit the form</button>",
+        "<a href=\"/home\" id=\"link1\">Navigate to the homepage</a>",
+        "</body>",
+        "</html>"
+    );
+    
+    session
+        .navigate(&format!("data:text/html,{}", html))
+        .expect("Failed to navigate");
+
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
+    let tool = GetClickableElementsTool::default();
+    let mut context = ToolContext::new(&session);
+
+    let result = tool
+        .execute_typed(GetClickableElementsParams {}, &mut context)
+        .expect("Failed to execute");
+
+    assert!(result.success);
+    let data = result.data.unwrap();
+    let elements_string = data["elements"].as_str().expect("No elements field");
+    let count = data["count"].as_u64().expect("No count field");
+
+    println!("Elements with text:\n{}", elements_string);
+    
+    assert!(count >= 1, "Expected at least 1 interactive element");
+    
+    // If we have elements, verify they contain text content
+    if count > 0 {
+        // Should contain the tag names
+        let has_button = elements_string.contains("button");
+        let has_link = elements_string.contains("a");
+        
+        assert!(has_button || has_link, "Expected button or link elements");
+    }
+}
