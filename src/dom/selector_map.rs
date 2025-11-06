@@ -266,9 +266,7 @@ mod tests {
         let indices: Vec<_> = map.indices().copied().collect();
         assert_eq!(indices, vec![0, 1, 2]);
 
-        let css_selectors: Vec<_> = map.selectors()
-            .map(|s| s.css_selector.clone())
-            .collect();
+        let css_selectors: Vec<_> = map.selectors().map(|s| s.css_selector.clone()).collect();
         assert_eq!(css_selectors, vec!["#one", "#two", "#three"]);
     }
 

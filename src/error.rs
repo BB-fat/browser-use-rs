@@ -85,7 +85,10 @@ mod tests {
     #[test]
     fn test_error_display() {
         let err = BrowserError::LaunchFailed("Chrome not found".to_string());
-        assert_eq!(err.to_string(), "Failed to launch browser: Chrome not found");
+        assert_eq!(
+            err.to_string(),
+            "Failed to launch browser: Chrome not found"
+        );
     }
 
     #[test]
@@ -104,7 +107,7 @@ mod tests {
     fn test_json_error_conversion() {
         let json_err = serde_json::from_str::<serde_json::Value>("invalid json");
         assert!(json_err.is_err());
-        
+
         let browser_err: BrowserError = json_err.unwrap_err().into();
         assert!(matches!(browser_err, BrowserError::JsonError(_)));
     }

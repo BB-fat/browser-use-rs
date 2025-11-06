@@ -44,7 +44,9 @@ fn test_simplified_dom_extraction() {
     std::thread::sleep(std::time::Duration::from_millis(500));
 
     // Extract simplified DOM
-    let dom = session.extract_simplified_dom().expect("Failed to extract simplified DOM");
+    let dom = session
+        .extract_simplified_dom()
+        .expect("Failed to extract simplified DOM");
 
     // Verify we got content
     let json = dom.to_json().expect("Failed to convert to JSON");
@@ -68,7 +70,7 @@ fn test_selector_map() {
 
     // Check selector map (may be 0 if elements aren't detected as visible)
     println!("Interactive elements found: {}", dom.count_interactive());
-    
+
     // Just verify the DOM structure is there
     let json = dom.to_json().unwrap();
     assert!(json.contains("btn1") || json.contains("button"));

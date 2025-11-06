@@ -6,7 +6,7 @@
 pub mod config;
 pub mod session;
 
-pub use config::{LaunchOptions, ConnectionOptions};
+pub use config::{ConnectionOptions, LaunchOptions};
 pub use session::BrowserSession;
 
 use crate::error::Result;
@@ -52,10 +52,8 @@ mod tests {
     #[test]
     #[ignore]
     fn test_init_with_options() {
-        let opts = LaunchOptions::new()
-            .headless(true)
-            .window_size(1024, 768);
-        
+        let opts = LaunchOptions::new().headless(true).window_size(1024, 768);
+
         let result = init_with_options(opts);
         assert!(result.is_ok());
     }

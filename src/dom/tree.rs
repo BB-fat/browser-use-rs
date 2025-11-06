@@ -30,26 +30,28 @@ impl DomTree {
         let js_code = include_str!("extract_dom.js");
 
         // Execute JavaScript to extract DOM
-        let result = tab
-            .evaluate(js_code, false)
-            .map_err(|e| BrowserError::DomParseFailed(format!("Failed to execute DOM extraction script: {}", e)))?;
+        let result = tab.evaluate(js_code, false).map_err(|e| {
+            BrowserError::DomParseFailed(format!("Failed to execute DOM extraction script: {}", e))
+        })?;
 
         // Get the JSON string value
-        let json_value = result
-            .value
-            .ok_or_else(|| BrowserError::DomParseFailed("No value returned from DOM extraction".to_string()))?;
+        let json_value = result.value.ok_or_else(|| {
+            BrowserError::DomParseFailed("No value returned from DOM extraction".to_string())
+        })?;
 
         // The JavaScript returns a JSON string, so we need to parse it as a string first
-        let json_str: String = serde_json::from_value(json_value)
-            .map_err(|e| BrowserError::DomParseFailed(format!("Failed to get JSON string: {}", e)))?;
+        let json_str: String = serde_json::from_value(json_value).map_err(|e| {
+            BrowserError::DomParseFailed(format!("Failed to get JSON string: {}", e))
+        })?;
 
         // Then parse the JSON string into ElementNode
-        let root: ElementNode = serde_json::from_str(&json_str)
-            .map_err(|e| BrowserError::DomParseFailed(format!("Failed to parse DOM JSON: {}", e)))?;
+        let root: ElementNode = serde_json::from_str(&json_str).map_err(|e| {
+            BrowserError::DomParseFailed(format!("Failed to parse DOM JSON: {}", e))
+        })?;
 
         let mut tree = Self::new(root);
         tree.build_selector_map();
-        
+
         Ok(tree)
     }
 
@@ -57,7 +59,12 @@ impl DomTree {
     fn build_selector_map(&mut self) {
         self.selector_map.clear();
         let mut index_counter = 0;
-        Self::traverse_and_index_static(&mut self.root, "body", &mut self.selector_map, &mut index_counter);
+        Self::traverse_and_index_static(
+            &mut self.root,
+            "body",
+            &mut self.selector_map,
+            &mut index_counter,
+        );
     }
 
     /// Static method to recursively traverse and index elements
@@ -90,7 +97,11 @@ impl DomTree {
         let css_selector = if let Some(id) = &node.id() {
             format!("#{}", id)
         } else if let Some(class) = node.get_attribute("class") {
-            format!("{}.{}", node.tag_name, class.split_whitespace().next().unwrap_or(""))
+            format!(
+                "{}.{}",
+                node.tag_name,
+                class.split_whitespace().next().unwrap_or("")
+            )
         } else {
             css_path.to_string()
         };
@@ -122,8 +133,9 @@ impl DomTree {
 
     /// Convert the DOM tree to JSON
     pub fn to_json(&self) -> Result<String> {
-        serde_json::to_string_pretty(&self.root)
-            .map_err(|e| BrowserError::DomParseFailed(format!("Failed to serialize DOM to JSON: {}", e)))
+        serde_json::to_string_pretty(&self.root).map_err(|e| {
+            BrowserError::DomParseFailed(format!("Failed to serialize DOM to JSON: {}", e))
+        })
     }
 
     /// Get element selector by index
@@ -142,7 +154,11 @@ impl DomTree {
     }
 
     fn count_elements_recursive(&self, node: &ElementNode) -> usize {
-        1 + node.children.iter().map(|c| self.count_elements_recursive(c)).sum::<usize>()
+        1 + node
+            .children
+            .iter()
+            .map(|c| self.count_elements_recursive(c))
+            .sum::<usize>()
     }
 
     /// Count interactive elements
@@ -155,7 +171,11 @@ impl DomTree {
         self.find_node_by_index_recursive(&self.root, index)
     }
 
-    fn find_node_by_index_recursive<'a>(&self, node: &'a ElementNode, target_index: usize) -> Option<&'a ElementNode> {
+    fn find_node_by_index_recursive<'a>(
+        &self,
+        node: &'a ElementNode,
+        target_index: usize,
+    ) -> Option<&'a ElementNode> {
         if node.index == Some(target_index) {
             return Some(node);
         }
@@ -176,29 +196,29 @@ mod tests {
 
     fn create_test_tree() -> ElementNode {
         let mut root = ElementNode::new("body");
-        
+
         let mut header = ElementNode::new("header");
         let mut nav_button = ElementNode::new("button");
         nav_button.add_attribute("id", "nav-btn");
         nav_button.text_content = Some("Menu".to_string());
         nav_button.is_visible = true;
         header.add_child(nav_button);
-        
+
         let mut main = ElementNode::new("main");
         let mut link = ElementNode::new("a");
         link.add_attribute("href", "/page");
         link.text_content = Some("Click here".to_string());
         link.is_visible = true;
         main.add_child(link);
-        
+
         let mut div = ElementNode::new("div");
         div.add_attribute("class", "content");
         div.text_content = Some("Some text".to_string());
         main.add_child(div);
-        
+
         root.add_child(header);
         root.add_child(main);
-        
+
         root
     }
 

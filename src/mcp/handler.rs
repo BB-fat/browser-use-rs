@@ -2,15 +2,15 @@
 
 use crate::browser::BrowserSession;
 use rmcp::{
+    ServerHandler,
     handler::server::tool::ToolRouter,
     model::{ServerCapabilities, ServerInfo},
     tool_handler,
-    ServerHandler,
 };
 use std::sync::{Arc, Mutex};
 
 /// MCP Server wrapper for BrowserSession
-/// 
+///
 /// This struct holds a browser session and provides thread-safe access
 /// for MCP tool execution.
 #[derive(Clone)]
@@ -22,9 +22,9 @@ pub struct BrowserServer {
 impl BrowserServer {
     /// Create a new browser server with default launch options
     pub fn new() -> Result<Self, String> {
-        let session = BrowserSession::new()
-            .map_err(|e| format!("Failed to launch browser: {}", e))?;
-        
+        let session =
+            BrowserSession::new().map_err(|e| format!("Failed to launch browser: {}", e))?;
+
         Ok(Self {
             session: Arc::new(Mutex::new(session)),
             tool_router: Self::tool_router(),
@@ -35,13 +35,13 @@ impl BrowserServer {
     pub fn with_options(options: crate::browser::LaunchOptions) -> Result<Self, String> {
         let session = BrowserSession::launch(options)
             .map_err(|e| format!("Failed to launch browser: {}", e))?;
-        
+
         Ok(Self {
             session: Arc::new(Mutex::new(session)),
             tool_router: Self::tool_router(),
         })
     }
-    
+
     /// Get a reference to the browser session (blocking lock)
     pub(crate) fn session(&self) -> std::sync::MutexGuard<'_, BrowserSession> {
         self.session.lock().expect("Failed to lock browser session")

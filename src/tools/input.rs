@@ -7,10 +7,10 @@ use serde::{Deserialize, Serialize};
 pub struct InputParams {
     /// CSS selector for the input element
     pub selector: String,
-    
+
     /// Text to type into the element
     pub text: String,
-    
+
     /// Clear existing content first (default: false)
     #[serde(default)]
     pub clear: bool,
@@ -28,7 +28,7 @@ impl Tool for InputTool {
 
     fn execute_typed(&self, params: InputParams, context: &mut ToolContext) -> Result<ToolResult> {
         let element = context.session.find_element(&params.selector)?;
-        
+
         if params.clear {
             element.click().ok(); // Focus
             // Clear with Ctrl+A and Delete
@@ -37,8 +37,9 @@ impl Tool for InputTool {
                 context.session.tab().press_key("Backspace").ok();
             }
         }
-        
-        element.type_into(&params.text)
+
+        element
+            .type_into(&params.text)
             .map_err(|e| BrowserError::ToolExecutionFailed {
                 tool: "input".to_string(),
                 reason: e.to_string(),

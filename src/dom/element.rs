@@ -98,7 +98,12 @@ impl ElementNode {
 
     /// Builder method: set bounding box
     pub fn with_bounding_box(mut self, x: f64, y: f64, width: f64, height: f64) -> Self {
-        self.bounding_box = Some(BoundingBox { x, y, width, height });
+        self.bounding_box = Some(BoundingBox {
+            x,
+            y,
+            width,
+            height,
+        });
         self
     }
 
@@ -140,19 +145,20 @@ impl ElementNode {
     pub fn compute_interactivity(&mut self) {
         // Interactive tags
         let interactive_tags = ["button", "a", "input", "select", "textarea", "label"];
-        
+
         // Check if tag is interactive
-        let tag_is_interactive = interactive_tags
-            .iter()
-            .any(|&tag| self.is_tag(tag));
+        let tag_is_interactive = interactive_tags.iter().any(|&tag| self.is_tag(tag));
 
         // Check for onclick or other event handlers
-        let has_event_handler = self.attributes.keys()
-            .any(|k| k.starts_with("on") || k == "role" && self.attributes.get("role").map_or(false, |r| r == "button"));
+        let has_event_handler = self.attributes.keys().any(|k| {
+            k.starts_with("on")
+                || k == "role" && self.attributes.get("role").map_or(false, |r| r == "button")
+        });
 
         // Check for clickable role
-        let has_clickable_role = self.get_attribute("role")
-            .map_or(false, |r| ["button", "link", "tab", "menuitem"].contains(&r.as_str()));
+        let has_clickable_role = self.get_attribute("role").map_or(false, |r| {
+            ["button", "link", "tab", "menuitem"].contains(&r.as_str())
+        });
 
         self.is_interactive = tag_is_interactive || has_event_handler || has_clickable_role;
     }
@@ -160,9 +166,8 @@ impl ElementNode {
     /// Simplify element by removing unnecessary children (like scripts, styles)
     pub fn simplify(&mut self) {
         // Remove script, style, and noscript elements
-        self.children.retain(|child| {
-            !matches!(child.tag_name.as_str(), "script" | "style" | "noscript")
-        });
+        self.children
+            .retain(|child| !matches!(child.tag_name.as_str(), "script" | "style" | "noscript"));
 
         // Recursively simplify children
         for child in &mut self.children {
@@ -201,7 +206,12 @@ impl ElementNode {
 impl BoundingBox {
     /// Create a new BoundingBox
     pub fn new(x: f64, y: f64, width: f64, height: f64) -> Self {
-        Self { x, y, width, height }
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
     }
 
     /// Check if the bounding box is visible (has non-zero dimensions)

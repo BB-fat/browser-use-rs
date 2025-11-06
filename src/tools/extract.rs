@@ -8,7 +8,7 @@ pub struct ExtractParams {
     /// CSS selector (optional, defaults to body)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub selector: Option<String>,
-    
+
     /// Format: "text" or "html"
     #[serde(default = "default_format")]
     pub format: String,
@@ -28,18 +28,24 @@ impl Tool for ExtractContentTool {
         "extract"
     }
 
-    fn execute_typed(&self, params: ExtractParams, context: &mut ToolContext) -> Result<ToolResult> {
+    fn execute_typed(
+        &self,
+        params: ExtractParams,
+        context: &mut ToolContext,
+    ) -> Result<ToolResult> {
         let content = if let Some(selector) = &params.selector {
             let element = context.session.find_element(selector)?;
-            
+
             if params.format == "html" {
-                element.get_content()
+                element
+                    .get_content()
                     .map_err(|e| BrowserError::ToolExecutionFailed {
                         tool: "extract".to_string(),
                         reason: e.to_string(),
                     })?
             } else {
-                element.get_inner_text()
+                element
+                    .get_inner_text()
                     .map_err(|e| BrowserError::ToolExecutionFailed {
                         tool: "extract".to_string(),
                         reason: e.to_string(),
@@ -52,12 +58,15 @@ impl Tool for ExtractContentTool {
             } else {
                 "document.body.innerText"
             };
-            
-            let result = context.session.tab()
+
+            let result = context
+                .session
+                .tab()
                 .evaluate(js_code, false)
                 .map_err(|e| BrowserError::EvaluationFailed(e.to_string()))?;
-            
-            result.value
+
+            result
+                .value
                 .and_then(|v| v.as_str().map(String::from))
                 .unwrap_or_default()
         };

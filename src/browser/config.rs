@@ -5,22 +5,22 @@ use std::path::PathBuf;
 pub struct LaunchOptions {
     /// Whether to run browser in headless mode (default: true)
     pub headless: bool,
-    
+
     /// Custom Chrome/Chromium binary path
     pub chrome_path: Option<PathBuf>,
-    
+
     /// Browser window width (default: 1280)
     pub window_width: u32,
-    
+
     /// Browser window height (default: 720)
     pub window_height: u32,
-    
+
     /// User data directory for browser profile
     pub user_data_dir: Option<PathBuf>,
-    
+
     /// Enable sandbox mode (default: true)
     pub sandbox: bool,
-    
+
     /// Timeout for browser launch in milliseconds (default: 30000)
     pub launch_timeout: u64,
 }
@@ -88,7 +88,7 @@ impl LaunchOptions {
 pub struct ConnectionOptions {
     /// WebSocket URL for Chrome DevTools Protocol
     pub ws_url: String,
-    
+
     /// Connection timeout in milliseconds (default: 10000)
     pub timeout: u64,
 }
@@ -140,8 +140,7 @@ mod tests {
 
     #[test]
     fn test_connection_options() {
-        let opts = ConnectionOptions::new("ws://localhost:9222")
-            .timeout(5000);
+        let opts = ConnectionOptions::new("ws://localhost:9222").timeout(5000);
 
         assert_eq!(opts.ws_url, "ws://localhost:9222");
         assert_eq!(opts.timeout, 5000);
