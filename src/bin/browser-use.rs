@@ -5,74 +5,81 @@
 
 use browser_use::browser::LaunchOptions;
 use browser_use::mcp::BrowserServer;
+use clap::Parser;
 use rmcp::{ServiceExt, transport::stdio};
 use std::io::{stdin, stdout};
 
+#[derive(Parser)]
+#[command(name = "browser-use")]
+#[command(version)]
+#[command(about = "Browser automation MCP server", long_about = None)]
+struct Cli {
+    /// Launch browser in headed mode (default: headless)
+    #[arg(long, short = 'H')]
+    headed: bool,
+
+    /// Path to custom browser executable
+    #[arg(long, value_name = "PATH")]
+    executable_path: Option<String>,
+
+    /// CDP endpoint URL for remote browser connection
+    #[arg(long, value_name = "URL")]
+    cdp_endpoint: Option<String>,
+
+    /// WebSocket endpoint URL for remote browser connection
+    #[arg(long, value_name = "URL")]
+    ws_endpoint: Option<String>,
+
+    /// Persistent browser profile directory
+    #[arg(long, value_name = "DIR")]
+    user_data_dir: Option<String>,
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Parse command line arguments
-    let args: Vec<String> = std::env::args().collect();
-
-    let mut headless = true;
-    let mut help = false;
-
-    for arg in args.iter().skip(1) {
-        match arg.as_str() {
-            "--headed" | "-h" => headless = false,
-            "--help" => help = true,
-            _ => {}
-        }
-    }
-
-    if help {
-        print_help();
-        return Ok(());
-    }
+    let cli = Cli::parse();
 
     // Configure browser launch options
     let options = LaunchOptions {
-        headless,
+        headless: !cli.headed,
         ..Default::default()
     };
 
     // Create browser server
-    let server = BrowserServer::with_options(options)
+    let service = BrowserServer::with_options(options.clone())
         .map_err(|e| format!("Failed to create browser server: {}", e))?;
 
-    eprintln!("Browser-use MCP Server starting...");
+    eprintln!("Browser-use MCP Server v{}", env!("CARGO_PKG_VERSION"));
     eprintln!(
         "Browser mode: {}",
-        if headless { "headless" } else { "headed" }
+        if options.headless {
+            "headless"
+        } else {
+            "headed"
+        }
     );
+
+    if let Some(ref path) = cli.executable_path {
+        eprintln!("Browser executable: {}", path);
+    }
+
+    if let Some(ref endpoint) = cli.cdp_endpoint {
+        eprintln!("CDP endpoint: {}", endpoint);
+    }
+
+    if let Some(ref endpoint) = cli.ws_endpoint {
+        eprintln!("WebSocket endpoint: {}", endpoint);
+    }
+
+    if let Some(ref dir) = cli.user_data_dir {
+        eprintln!("User data directory: {}", dir);
+    }
+
     eprintln!("Ready to accept MCP connections via stdio");
 
     // Start stdio transport
     let (_read, _write) = (stdin(), stdout());
-    server.serve(stdio()).await?;
-
+    let server = service.serve(stdio()).await?;
+    server.waiting().await?;
     Ok(())
-}
-
-fn print_help() {
-    println!("Browser-use MCP Server v{}", env!("CARGO_PKG_VERSION"));
-    println!();
-    println!("USAGE:");
-    println!("    browser-use [OPTIONS]");
-    println!();
-    println!("OPTIONS:");
-    println!("    --headed, -h    Launch browser in headed mode (default: headless)");
-    println!("    --help          Print this help message");
-    println!();
-    println!("DESCRIPTION:");
-    println!("    Provides browser automation tools via Model Context Protocol (MCP).");
-    println!("    Communicates over stdio using JSON-RPC 2.0.");
-    println!();
-    println!("AVAILABLE TOOLS:");
-    println!("    browser_navigate           - Navigate to a URL");
-    println!("    browser_click              - Click on an element");
-    println!("    browser_form_input_fill    - Fill an input field");
-    println!("    browser_get_text           - Extract text content");
-    println!("    browser_screenshot         - Take a screenshot");
-    println!("    browser_evaluate           - Execute JavaScript");
-    println!("    browser_wait               - Wait for a duration");
 }

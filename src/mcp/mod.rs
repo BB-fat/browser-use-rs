@@ -7,10 +7,10 @@ pub use handler::BrowserServer;
 
 use crate::tools::{ToolContext, ToolResult as InternalToolResult};
 use rmcp::{
-    tool_router, tool,
     ErrorData as McpError,
-    model::{CallToolResult, Content},
     handler::server::wrapper::Parameters,
+    model::{CallToolResult, Content},
+    tool, tool_router,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -108,13 +108,14 @@ impl BrowserServer {
     ) -> Result<CallToolResult, McpError> {
         let session = self.session();
         let mut context = ToolContext::new(&*session);
-        
+
         let tool_params = serde_json::json!({
             "url": params.0.url,
             "wait_for_load": params.0.wait_for_load
         });
 
-        let result = session.tool_registry()
+        let result = session
+            .tool_registry()
             .execute("navigate", tool_params, &mut context)
             .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
@@ -123,10 +124,7 @@ impl BrowserServer {
 
     /// Click on an element
     #[tool(description = "Click on an element specified by CSS selector or index")]
-    fn browser_click(
-        &self,
-        params: Parameters<ClickParams>,
-    ) -> Result<CallToolResult, McpError> {
+    fn browser_click(&self, params: Parameters<ClickParams>) -> Result<CallToolResult, McpError> {
         let session = self.session();
         let mut context = ToolContext::new(&*session);
 
@@ -135,10 +133,14 @@ impl BrowserServer {
         } else if let Some(index) = params.0.index {
             serde_json::json!({ "index": index })
         } else {
-            return Err(McpError::invalid_params("Either selector or index must be provided", None));
+            return Err(McpError::invalid_params(
+                "Either selector or index must be provided",
+                None,
+            ));
         };
 
-        let result = session.tool_registry()
+        let result = session
+            .tool_registry()
             .execute("click", tool_params, &mut context)
             .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
@@ -163,10 +165,14 @@ impl BrowserServer {
         } else if let Some(index) = params.0.index {
             tool_params["index"] = serde_json::json!(index);
         } else {
-            return Err(McpError::invalid_params("Either selector or index must be provided", None));
+            return Err(McpError::invalid_params(
+                "Either selector or index must be provided",
+                None,
+            ));
         }
 
-        let result = session.tool_registry()
+        let result = session
+            .tool_registry()
             .execute("input", tool_params, &mut context)
             .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
@@ -188,7 +194,8 @@ impl BrowserServer {
             serde_json::json!({})
         };
 
-        let result = session.tool_registry()
+        let result = session
+            .tool_registry()
             .execute("extract_content", tool_params, &mut context)
             .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
@@ -208,7 +215,8 @@ impl BrowserServer {
             "full_page": params.0.full_page
         });
 
-        let result = session.tool_registry()
+        let result = session
+            .tool_registry()
             .execute("screenshot", tool_params, &mut context)
             .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
@@ -228,7 +236,8 @@ impl BrowserServer {
             "script": params.0.script
         });
 
-        let result = session.tool_registry()
+        let result = session
+            .tool_registry()
             .execute("evaluate", tool_params, &mut context)
             .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
@@ -237,10 +246,7 @@ impl BrowserServer {
 
     /// Wait for a specified duration
     #[tool(description = "Wait for a specified duration in milliseconds")]
-    fn browser_wait(
-        &self,
-        params: Parameters<WaitParams>,
-    ) -> Result<CallToolResult, McpError> {
+    fn browser_wait(&self, params: Parameters<WaitParams>) -> Result<CallToolResult, McpError> {
         let session = self.session();
         let mut context = ToolContext::new(&*session);
 
@@ -248,7 +254,8 @@ impl BrowserServer {
             "duration_ms": params.0.duration_ms
         });
 
-        let result = session.tool_registry()
+        let result = session
+            .tool_registry()
             .execute("wait", tool_params, &mut context)
             .map_err(|e| McpError::internal_error(e.to_string(), None))?;
 
