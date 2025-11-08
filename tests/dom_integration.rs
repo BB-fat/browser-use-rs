@@ -1,4 +1,5 @@
 use browser_use::{BrowserSession, LaunchOptions};
+use log::info;
 
 #[test]
 #[ignore] // Requires Chrome to be installed
@@ -20,8 +21,8 @@ fn test_dom_extraction() {
 
     // Note: interactive elements might be 0 due to visibility issues with data: URLs
     // Just verify we got the structure
-    println!("DOM tree element count: {}", dom.count_elements());
-    println!("Interactive elements: {}", dom.count_interactive());
+    info!("DOM tree element count: {}", dom.count_elements());
+    info!("Interactive elements: {}", dom.count_interactive());
 
     // Convert to JSON
     let json = dom.to_json().expect("Failed to convert to JSON");
@@ -51,7 +52,7 @@ fn test_simplified_dom_extraction() {
     // Verify we got content
     let json = dom.to_json().expect("Failed to convert to JSON");
     assert!(json.contains("button") || json.contains("body"));
-    println!("Simplified DOM: {}", json);
+    info!("Simplified DOM: {}", json);
 }
 
 #[test]
@@ -69,7 +70,7 @@ fn test_selector_map() {
     let dom = session.extract_dom().expect("Failed to extract DOM");
 
     // Check selector map (may be 0 if elements aren't detected as visible)
-    println!("Interactive elements found: {}", dom.count_interactive());
+    info!("Interactive elements found: {}", dom.count_interactive());
 
     // Just verify the DOM structure is there
     let json = dom.to_json().unwrap();
@@ -126,8 +127,8 @@ fn test_get_markdown() {
     let title = data["title"].as_str().expect("No title field");
 
     // Debug: Print the markdown to see what we got
-    println!("Extracted markdown:\n{}", markdown);
-    println!("Title: {}", title);
+    info!("Extracted markdown:\n{}", markdown);
+    info!("Title: {}", title);
 
     // Verify content
     assert_eq!(title, "Test Page");
@@ -200,9 +201,9 @@ fn test_read_links() {
     let links = data["links"].as_array().unwrap();
     let count = data["count"].as_u64().unwrap();
 
-    println!("Links found: {}", count);
+    info!("Links found: {}", count);
     for link in links {
-        println!(
+        info!(
             "  {} -> {}",
             link["text"].as_str().unwrap_or(""),
             link["href"].as_str().unwrap_or("")
@@ -281,8 +282,8 @@ fn test_get_clickable_elements() {
     let count = data["count"].as_u64().expect("No count field");
 
     // Debug: Print the elements to see what we got
-    println!("Clickable elements found: {}", count);
-    println!("Elements:\n{}", elements_string);
+    info!("Clickable elements found: {}", count);
+    info!("Elements:\n{}", elements_string);
 
     // Verify we found interactive elements
     // Note: Actual count may vary due to visibility detection in data: URLs
@@ -336,7 +337,7 @@ fn test_get_clickable_elements_empty() {
     let count = data["count"].as_u64().expect("No count field");
     let elements = data["elements"].as_str().expect("No elements field");
 
-    println!("Empty page - count: {}, elements: '{}'", count, elements);
+    info!("Empty page - count: {}, elements: '{}'", count, elements);
 
     // Should have 0 interactive elements
     assert_eq!(count, 0);
@@ -382,7 +383,7 @@ fn test_get_clickable_elements_with_text() {
     let elements_string = data["elements"].as_str().expect("No elements field");
     let count = data["count"].as_u64().expect("No count field");
 
-    println!("Elements with text:\n{}", elements_string);
+    info!("Elements with text:\n{}", elements_string);
 
     assert!(count >= 1, "Expected at least 1 interactive element");
 

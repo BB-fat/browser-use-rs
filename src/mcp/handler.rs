@@ -1,6 +1,7 @@
 //! ServerHandler implementation for BrowserSession
 
 use crate::browser::BrowserSession;
+use log::debug;
 use rmcp::{
     ServerHandler,
     handler::server::tool::ToolRouter,
@@ -51,6 +52,12 @@ impl BrowserServer {
 impl Default for BrowserServer {
     fn default() -> Self {
         Self::new().expect("Failed to create default browser server")
+    }
+}
+
+impl Drop for BrowserServer {
+    fn drop(&mut self) {
+        debug!("BrowserServer dropped");
     }
 }
 

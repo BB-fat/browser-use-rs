@@ -6,6 +6,7 @@
 use browser_use::browser::LaunchOptions;
 use browser_use::mcp::BrowserServer;
 use clap::{Parser, ValueEnum};
+use log::{debug, info};
 use rmcp::{ServiceExt, transport::stdio};
 use std::io::{stdin, stdout};
 
@@ -76,6 +77,8 @@ struct Cli {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+
     let cli = Cli::parse();
 
     // Configure browser launch options
@@ -84,8 +87,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
 
-    eprintln!("Browser-use MCP Server v{}", env!("CARGO_PKG_VERSION"));
-    eprintln!(
+    info!("Browser-use MCP Server v{}", env!("CARGO_PKG_VERSION"));
+    info!(
         "Browser mode: {}",
         if options.headless {
             "headless"
@@ -95,41 +98,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     if let Some(ref path) = cli.executable_path {
-        eprintln!("Browser executable: {}", path);
+        info!("Browser executable: {}", path);
     }
 
     if let Some(ref endpoint) = cli.cdp_endpoint {
-        eprintln!("CDP endpoint: {}", endpoint);
+        info!("CDP endpoint: {}", endpoint);
     }
 
     if let Some(ref endpoint) = cli.ws_endpoint {
-        eprintln!("WebSocket endpoint: {}", endpoint);
+        info!("WebSocket endpoint: {}", endpoint);
     }
 
     if let Some(ref dir) = cli.user_data_dir {
-        eprintln!("User data directory: {}", dir);
+        info!("User data directory: {}", dir);
     }
 
     // Route to appropriate transport
     match cli.transport {
         Transport::Stdio => {
-            eprintln!("Transport: stdio");
-            eprintln!("Ready to accept MCP connections via stdio");
+            info!("Transport: stdio");
+            info!("Ready to accept MCP connections via stdio");
             let (_read, _write) = (stdin(), stdout());
             let service = BrowserServer::with_options(options.clone())
                 .map_err(|e| format!("Failed to create browser server: {}", e))?;
             let server = service.serve(stdio()).await?;
             let quit_reason = server.waiting().await?;
-            eprintln!("Server quit with reason: {:?}", quit_reason);
+            debug!("Server quit with reason: {:?}", quit_reason);
             // Give a small delay for destructors to complete
-            tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
-            eprintln!("Cleanup complete, exiting...");
+            tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+            info!("Cleanup complete, exiting...");
         }
         Transport::Sse => {
-            eprintln!("Transport: SSE");
-            eprintln!("Port: {}", cli.port);
-            eprintln!("SSE path: {}", cli.sse_path);
-            eprintln!("SSE POST path: {}", cli.sse_post_path);
+            info!("Transport: SSE");
+            info!("Port: {}", cli.port);
+            info!("SSE path: {}", cli.sse_path);
+            info!("SSE POST path: {}", cli.sse_post_path);
 
             let bind_addr = format!("127.0.0.1:{}", cli.port);
 
@@ -145,7 +148,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Create SSE server and router
             let (sse_server, router) = SseServer::new(config);
 
-            eprintln!(
+            info!(
                 "Ready to accept MCP connections at http://{}{}",
                 bind_addr, cli.sse_path
             );
@@ -161,9 +164,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             axum::serve(listener, router.into_make_service()).await?;
         }
         Transport::Http => {
-            eprintln!("Transport: HTTP streamable");
-            eprintln!("Port: {}", cli.port);
-            eprintln!("HTTP path: {}", cli.http_path);
+            info!("Transport: HTTP streamable");
+            info!("Port: {}", cli.port);
+            info!("HTTP path: {}", cli.http_path);
 
             let bind_addr = format!("127.0.0.1:{}", cli.port);
 
@@ -181,7 +184,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let router = axum::Router::new().nest_service(&cli.http_path, http_service);
 
-            eprintln!(
+            info!(
                 "Ready to accept MCP connections at http://{}{}",
                 bind_addr, cli.http_path
             );
