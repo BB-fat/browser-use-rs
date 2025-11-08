@@ -73,13 +73,16 @@ struct Cli {
     /// HTTP streamable endpoint path (default: /mcp)
     #[arg(long, default_value = "/mcp")]
     http_path: String,
+
+    /// Log file path for stdio mode (default: browser-use-mcp.log)
+    #[arg(long, default_value = "browser-use-mcp.log")]
+    log_file: String,
 }
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-
     let cli = Cli::parse();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     // Configure browser launch options
     let options = LaunchOptions {
@@ -122,11 +125,51 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let service = BrowserServer::with_options(options.clone())
                 .map_err(|e| format!("Failed to create browser server: {}", e))?;
             let server = service.serve(stdio()).await?;
-            let quit_reason = server.waiting().await?;
-            debug!("Server quit with reason: {:?}", quit_reason);
-            // Give a small delay for destructors to complete
-            tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
-            info!("Cleanup complete, exiting...");
+
+            // Set up signal handler for graceful shutdown
+            #[cfg(unix)]
+            {
+                let mut sigterm =
+                    tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
+                let mut sigint =
+                    tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())?;
+
+                tokio::select! {
+                    quit_reason = server.waiting() => {
+                        debug!("Server quit with reason: {:?}", quit_reason);
+                    }
+                    _ = sigterm.recv() => {
+                        info!("Received SIGTERM, shutting down gracefully...");
+                    }
+                    _ = sigint.recv() => {
+                        info!("Received SIGINT (Ctrl+C), shutting down gracefully...");
+                    }
+                }
+            }
+
+            #[cfg(windows)]
+            {
+                let mut ctrl_c = tokio::signal::windows::ctrl_c()?;
+                let mut ctrl_break = tokio::signal::windows::ctrl_break()?;
+
+                tokio::select! {
+                    quit_reason = server.waiting() => {
+                        debug!("Server quit with reason: {:?}", quit_reason);
+                    }
+                    _ = ctrl_c.recv() => {
+                        info!("Received Ctrl+C, shutting down gracefully...");
+                    }
+                    _ = ctrl_break.recv() => {
+                        info!("Received Ctrl+Break, shutting down gracefully...");
+                    }
+                }
+            }
+
+            #[cfg(not(any(unix, windows)))]
+            {
+                let quit_reason = server.waiting().await;
+                debug!("Server quit with reason: {:?}", quit_reason);
+            }
         }
         Transport::Sse => {
             info!("Transport: SSE");
