@@ -35,14 +35,14 @@
 //!
 //! # fn main() -> browser_use::Result<()> {
 //! // Launch a browser
-//! let mut session = BrowserSession::launch(LaunchOptions::default())?;
+//! let session = BrowserSession::launch(LaunchOptions::default())?;
 //!
 //! // Navigate to a page
-//! session.navigate("https://example.com", None)?;
+//! session.navigate("https://example.com")?;
 //!
 //! // Extract DOM with indexed elements
 //! let dom = session.extract_dom()?;
-//! println!("Found {} interactive elements", dom.selector_map().len());
+//! println!("Found {} interactive elements", dom.count_interactive());
 //! # Ok(())
 //! # }
 //! ```
@@ -50,19 +50,20 @@
 //! ### Using the Tool System
 //!
 //! ```rust,no_run
-//! use browser_use::{BrowserSession, LaunchOptions, ToolRegistry, ToolContext};
+//! use browser_use::{BrowserSession, LaunchOptions};
+//! use browser_use::tools::{ToolRegistry, ToolContext};
 //! use serde_json::json;
 //!
 //! # fn main() -> browser_use::Result<()> {
-//! let mut session = BrowserSession::launch(LaunchOptions::default())?;
-//! let registry = ToolRegistry::new();
-//! let mut context = ToolContext::new(&mut session);
+//! let session = BrowserSession::launch(LaunchOptions::default())?;
+//! let registry = ToolRegistry::with_defaults();
+//! let mut context = ToolContext::new(&session);
 //!
 //! // Navigate using the tool system
-//! registry.execute_tool("navigate", json!({"url": "https://example.com"}), &mut context)?;
+//! registry.execute("navigate", json!({"url": "https://example.com"}), &mut context)?;
 //!
 //! // Click an element by index
-//! registry.execute_tool("click", json!({"index": 5}), &mut context)?;
+//! registry.execute("click", json!({"index": 5}), &mut context)?;
 //! # Ok(())
 //! # }
 //! ```
@@ -75,14 +76,12 @@
 //! ```rust,no_run
 //! # use browser_use::{BrowserSession, LaunchOptions};
 //! # fn main() -> browser_use::Result<()> {
-//! # let mut session = BrowserSession::launch(LaunchOptions::default())?;
-//! # session.navigate("https://example.com", None)?;
+//! # let session = BrowserSession::launch(LaunchOptions::default())?;
+//! # session.navigate("https://example.com")?;
 //! let dom = session.extract_dom()?;
 //!
-//! // Access elements by numeric index
-//! if let Some(selector) = dom.selector_map().get_selector(5) {
-//!     println!("Element 5 selector: {}", selector);
-//! }
+//! // Interactive elements are indexed and can be accessed via tools
+//! println!("Found {} interactive elements", dom.count_interactive());
 //! # Ok(())
 //! # }
 //! ```

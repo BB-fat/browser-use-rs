@@ -54,9 +54,6 @@ macro_rules! register_mcp_tools {
 // 以下未实现：
 // browser_go_back
 // browser_go_forward
-// browser_tab_list
-// browser_switch_tab
-// browser_close_tab
 // browser_get_download_list
 // browser_select
 // browser_hover
@@ -77,4 +74,7 @@ register_mcp_tools! {
     browser_get_clickable_elements => tools::get_clickable_elements::GetClickableElementsTool, "Get all clickable/interactive elements on the page";
     browser_press_key => tools::press_key::PressKeyTool, "Press a key on the keyboard";
     browser_new_tab => tools::new_tab::NewTabTool, "Open a new tab and navigate to the specified URL";
+    browser_tab_list => tools::tab_list::TabListTool, "Get the list of all browser tabs with their titles and URLs";
+    browser_switch_tab => tools::switch_tab::SwitchTabTool, "Switch to a specific tab by index";
+    browser_close_tab => tools::close_tab::CloseTabTool, "Close the current active tab";
 }

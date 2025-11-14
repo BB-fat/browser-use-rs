@@ -4,6 +4,7 @@
 //! includes implementations of common browser operations.
 
 pub mod click;
+pub mod close_tab;
 pub mod evaluate;
 pub mod extract;
 pub mod get_clickable_elements;
@@ -14,10 +15,13 @@ pub mod new_tab;
 pub mod press_key;
 pub mod read_links;
 pub mod screenshot;
+pub mod switch_tab;
+pub mod tab_list;
 pub mod wait;
 
 // Re-export Params types for use by MCP layer
 pub use click::ClickParams;
+pub use close_tab::CloseTabParams;
 pub use evaluate::EvaluateParams;
 pub use extract::ExtractParams;
 pub use get_clickable_elements::GetClickableElementsParams;
@@ -28,6 +32,8 @@ pub use new_tab::NewTabParams;
 pub use press_key::PressKeyParams;
 pub use read_links::ReadLinksParams;
 pub use screenshot::ScreenshotParams;
+pub use switch_tab::SwitchTabParams;
+pub use tab_list::TabListParams;
 pub use wait::WaitParams;
 
 use crate::browser::BrowserSession;
@@ -206,6 +212,9 @@ impl ToolRegistry {
         registry.register(get_clickable_elements::GetClickableElementsTool);
         registry.register(press_key::PressKeyTool);
         registry.register(new_tab::NewTabTool);
+        registry.register(tab_list::TabListTool);
+        registry.register(switch_tab::SwitchTabTool);
+        registry.register(close_tab::CloseTabTool);
 
         registry
     }
