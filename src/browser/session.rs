@@ -205,6 +205,56 @@ impl BrowserSession {
         let mut context = ToolContext::new(self);
         self.tool_registry.execute(name, params, &mut context)
     }
+
+    /// Navigate back in browser history
+    pub fn go_back(&self) -> Result<()> {
+        let go_back_js = r#"
+            (function() {
+                window.history.back();
+                return true;
+            })()
+        "#;
+
+        self.active_tab
+            .evaluate(go_back_js, false)
+            .map_err(|e| BrowserError::NavigationFailed(format!("Failed to go back: {}", e)))?;
+
+        // Wait a moment for navigation
+        std::thread::sleep(std::time::Duration::from_millis(300));
+
+        Ok(())
+    }
+
+    /// Navigate forward in browser history
+    pub fn go_forward(&self) -> Result<()> {
+        let go_forward_js = r#"
+            (function() {
+                window.history.forward();
+                return true;
+            })()
+        "#;
+
+        self.active_tab
+            .evaluate(go_forward_js, false)
+            .map_err(|e| BrowserError::NavigationFailed(format!("Failed to go forward: {}", e)))?;
+
+        // Wait a moment for navigation
+        std::thread::sleep(std::time::Duration::from_millis(300));
+
+        Ok(())
+    }
+
+    /// Close the browser
+    pub fn close(&self) -> Result<()> {
+        // Note: The Browser struct doesn't have a public close method in headless_chrome
+        // The browser will be closed when the Browser instance is dropped
+        // We can close all tabs to effectively shut down
+        let tabs = self.get_tabs()?;
+        for tab in tabs {
+            let _ = tab.close(false); // Ignore errors on individual tab closes
+        }
+        Ok(())
+    }
 }
 
 impl Default for BrowserSession {

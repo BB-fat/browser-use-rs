@@ -51,28 +51,32 @@ macro_rules! register_mcp_tools {
     };
 }
 
-// 以下未实现：
-// browser_go_back
-// browser_go_forward
-// browser_get_download_list
-// browser_select
-// browser_hover
-// browser_scroll
-// browser_close
-
 // Register all MCP tools using the macro
 register_mcp_tools! {
+    // ---- Navigation and Browser Flow ----
     browser_navigate => tools::navigate::NavigateTool, "Navigate to a specified URL in the browser";
-    browser_click => tools::click::ClickTool, "Click on an element specified by CSS selector or index";
-    browser_form_input_fill => tools::input::InputTool, "Type text into an input element";
+    browser_go_back => tools::go_back::GoBackTool, "Navigate back in browser history";
+    browser_go_forward => tools::go_forward::GoForwardTool, "Navigate forward in browser history";
+    browser_close => tools::close::CloseTool, "Close the browser when the task is complete";
+
+    // ---- Page Content and Extraction ----
     browser_get_text => tools::extract::ExtractContentTool, "Extract text or HTML content from the page or an element";
-    browser_screenshot => tools::screenshot::ScreenshotTool, "Capture a screenshot of the current page";
-    browser_evaluate => tools::evaluate::EvaluateTool, "Execute JavaScript code in the browser context";
-    browser_wait => tools::wait::WaitTool, "Wait for an element to appear on the page";
     browser_get_markdown => tools::markdown::GetMarkdownTool, "Get the markdown content of the current page";
     browser_read_links => tools::read_links::ReadLinksTool, "Read all links on the current page";
+    browser_evaluate => tools::evaluate::EvaluateTool, "Execute JavaScript code in the browser context";
+    browser_screenshot => tools::screenshot::ScreenshotTool, "Capture a screenshot of the current page";
     browser_get_clickable_elements => tools::get_clickable_elements::GetClickableElementsTool, "Get all clickable/interactive elements on the page";
+
+    // ---- Interaction ----
+    browser_click => tools::click::ClickTool, "Click on an element specified by CSS selector or index";
+    browser_hover => tools::hover::HoverTool, "Hover over an element specified by CSS selector or index";
+    browser_select => tools::select::SelectTool, "Select an option in a dropdown element by CSS selector or index";
+    browser_form_input_fill => tools::input::InputTool, "Type text into an input element";
     browser_press_key => tools::press_key::PressKeyTool, "Press a key on the keyboard";
+    browser_scroll => tools::scroll::ScrollTool, "Scroll the page by a specified amount or to the bottom";
+    browser_wait => tools::wait::WaitTool, "Wait for an element to appear on the page";
+
+    // ---- Tab Management ----
     browser_new_tab => tools::new_tab::NewTabTool, "Open a new tab and navigate to the specified URL";
     browser_tab_list => tools::tab_list::TabListTool, "Get the list of all browser tabs with their titles and URLs";
     browser_switch_tab => tools::switch_tab::SwitchTabTool, "Switch to a specific tab by index";

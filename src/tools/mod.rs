@@ -4,10 +4,14 @@
 //! includes implementations of common browser operations.
 
 pub mod click;
+pub mod close;
 pub mod close_tab;
 pub mod evaluate;
 pub mod extract;
 pub mod get_clickable_elements;
+pub mod go_back;
+pub mod go_forward;
+pub mod hover;
 pub mod input;
 pub mod markdown;
 pub mod navigate;
@@ -15,16 +19,22 @@ pub mod new_tab;
 pub mod press_key;
 pub mod read_links;
 pub mod screenshot;
+pub mod scroll;
+pub mod select;
 pub mod switch_tab;
 pub mod tab_list;
 pub mod wait;
 
 // Re-export Params types for use by MCP layer
 pub use click::ClickParams;
+pub use close::CloseParams;
 pub use close_tab::CloseTabParams;
 pub use evaluate::EvaluateParams;
 pub use extract::ExtractParams;
 pub use get_clickable_elements::GetClickableElementsParams;
+pub use go_back::GoBackParams;
+pub use go_forward::GoForwardParams;
+pub use hover::HoverParams;
 pub use input::InputParams;
 pub use markdown::GetMarkdownParams;
 pub use navigate::NavigateParams;
@@ -32,6 +42,8 @@ pub use new_tab::NewTabParams;
 pub use press_key::PressKeyParams;
 pub use read_links::ReadLinksParams;
 pub use screenshot::ScreenshotParams;
+pub use scroll::ScrollParams;
+pub use select::SelectParams;
 pub use switch_tab::SwitchTabParams;
 pub use tab_list::TabListParams;
 pub use wait::WaitParams;
@@ -199,22 +211,36 @@ impl ToolRegistry {
     pub fn with_defaults() -> Self {
         let mut registry = Self::new();
 
-        // Register default tools
+        // Register navigation tools
         registry.register(navigate::NavigateTool);
+        registry.register(go_back::GoBackTool);
+        registry.register(go_forward::GoForwardTool);
+        registry.register(wait::WaitTool);
+
+        // Register interaction tools
         registry.register(click::ClickTool);
         registry.register(input::InputTool);
-        registry.register(extract::ExtractContentTool);
-        registry.register(screenshot::ScreenshotTool);
-        registry.register(evaluate::EvaluateTool);
-        registry.register(wait::WaitTool);
-        registry.register(markdown::GetMarkdownTool);
-        registry.register(read_links::ReadLinksTool);
-        registry.register(get_clickable_elements::GetClickableElementsTool);
+        registry.register(select::SelectTool);
+        registry.register(hover::HoverTool);
         registry.register(press_key::PressKeyTool);
+        registry.register(scroll::ScrollTool);
+
+        // Register tab management tools
         registry.register(new_tab::NewTabTool);
         registry.register(tab_list::TabListTool);
         registry.register(switch_tab::SwitchTabTool);
         registry.register(close_tab::CloseTabTool);
+
+        // Register reading and extraction tools
+        registry.register(extract::ExtractContentTool);
+        registry.register(markdown::GetMarkdownTool);
+        registry.register(read_links::ReadLinksTool);
+        registry.register(get_clickable_elements::GetClickableElementsTool);
+
+        // Register utility tools
+        registry.register(screenshot::ScreenshotTool);
+        registry.register(evaluate::EvaluateTool);
+        registry.register(close::CloseTool);
 
         registry
     }
