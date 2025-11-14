@@ -10,6 +10,7 @@ pub mod get_clickable_elements;
 pub mod input;
 pub mod markdown;
 pub mod navigate;
+pub mod press_key;
 pub mod read_links;
 pub mod screenshot;
 pub mod wait;
@@ -22,6 +23,7 @@ pub use get_clickable_elements::GetClickableElementsParams;
 pub use input::InputParams;
 pub use markdown::GetMarkdownParams;
 pub use navigate::NavigateParams;
+pub use press_key::PressKeyParams;
 pub use read_links::ReadLinksParams;
 pub use screenshot::ScreenshotParams;
 pub use wait::WaitParams;
@@ -200,6 +202,7 @@ impl ToolRegistry {
         registry.register(markdown::GetMarkdownTool);
         registry.register(read_links::ReadLinksTool);
         registry.register(get_clickable_elements::GetClickableElementsTool);
+        registry.register(press_key::PressKeyTool);
 
         registry
     }

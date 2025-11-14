@@ -396,3 +396,88 @@ fn test_get_clickable_elements_with_text() {
         assert!(has_button || has_link, "Expected button or link elements");
     }
 }
+
+#[test]
+#[ignore]
+fn test_press_key_enter() {
+    use browser_use::tools::{PressKeyParams, Tool, ToolContext, press_key::PressKeyTool};
+
+    let session = BrowserSession::launch(LaunchOptions::new().headless(true))
+        .expect("Failed to launch browser");
+
+    // Create a page with an input field that responds to Enter key
+    let html = r#"
+        <html>
+        <head><title>Press Key Test</title></head>
+        <body>
+            <input type="text" id="input1" value="test">
+            <div id="output"></div>
+            <script>
+                document.getElementById('input1').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        document.getElementById('output').textContent = 'Enter pressed!';
+                    }
+                });
+            </script>
+        </body>
+        </html>
+    "#;
+
+    session
+        .navigate(&format!("data:text/html,{}", html))
+        .expect("Failed to navigate");
+
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
+    // Focus the input element first
+    session
+        .tab()
+        .find_element("#input1")
+        .expect("Input not found")
+        .click()
+        .expect("Failed to click input");
+
+    std::thread::sleep(std::time::Duration::from_millis(200));
+
+    // Create tool and context
+    let tool = PressKeyTool::default();
+    let mut context = ToolContext::new(&session);
+
+    // Execute the tool to press Enter
+    let result = tool
+        .execute_typed(
+            PressKeyParams {
+                key: "Enter".to_string(),
+            },
+            &mut context,
+        )
+        .expect("Failed to execute press_key tool");
+
+    // Verify the result
+    assert!(result.success, "Tool execution should succeed");
+    assert!(result.data.is_some());
+
+    let data = result.data.unwrap();
+    assert_eq!(data["key"].as_str(), Some("Enter"));
+
+    std::thread::sleep(std::time::Duration::from_millis(200));
+
+    // Verify that the event was triggered
+    let output = session
+        .tab()
+        .wait_for_element("#output")
+        .ok()
+        .and_then(|elem| elem.get_inner_text().ok());
+
+    info!("Output after Enter key: {:?}", output);
+
+    // 校验 output 内容
+    assert_eq!(
+        output.as_deref(),
+        Some("Enter pressed!"),
+        "Output should be 'Enter pressed!', but was: {:?}",
+        output
+    );
+    // Note: Due to limitations with data: URLs and event handling,
+    // we mainly verify that the tool executes without error
+}
