@@ -4,6 +4,7 @@ use crate::error::{BrowserError, Result};
 use crate::tools::{ToolContext, ToolRegistry};
 use headless_chrome::{Browser, Tab};
 use std::sync::Arc;
+use std::time::Duration;
 
 /// Browser session that manages a Chrome/Chromium instance
 pub struct BrowserSession {
@@ -21,6 +22,8 @@ impl BrowserSession {
     /// Launch a new browser instance with the given options
     pub fn launch(options: LaunchOptions) -> Result<Self> {
         let mut launch_opts = headless_chrome::LaunchOptions::default();
+
+        launch_opts.idle_browser_timeout = Duration::from_secs(60 * 2);
 
         // Configure headless mode
         launch_opts.headless = options.headless;
