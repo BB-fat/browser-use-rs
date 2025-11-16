@@ -1,6 +1,6 @@
 [package]
 name = "browser-use"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["BB-fat"]
 description = "A lightweight Rust library for browser automation via Chrome DevTools Protocol (CDP), featuring a built-in Model Context Protocol (MCP) server for AI-driven browser automation"
