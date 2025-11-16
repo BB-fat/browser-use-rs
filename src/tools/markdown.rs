@@ -55,9 +55,10 @@ impl Tool for GetMarkdownTool {
         std::thread::sleep(std::time::Duration::from_millis(1000));
 
         // Inject Readability.js script and the conversion script
-        // We concatenate the scripts as strings to avoid template literal issues
+        // Use 'var' instead of 'const' to allow redeclaration on subsequent calls
+        // This prevents "identifier already declared" errors when calling get_markdown multiple times
         let js_code = format!(
-            "const READABILITY_SCRIPT = {};\n{}",
+            "var READABILITY_SCRIPT = {};\n{}",
             serde_json::to_string(READABILITY_SCRIPT).unwrap(),
             include_str!("convert_to_markdown.js")
         );
@@ -69,13 +70,19 @@ impl Tool for GetMarkdownTool {
             .evaluate(&js_code, false)
             .map_err(|e| BrowserError::EvaluationFailed(e.to_string()))?;
 
-        // Parse the result
-        let result_value = result
-            .value
-            .ok_or_else(|| BrowserError::ToolExecutionFailed {
+        // Parse the result  
+        let result_value = result.value.ok_or_else(|| {
+            // Capture description if available
+            let description = result
+                .description
+                .map(|d| format!("Description: {}", d))
+                .unwrap_or_else(|| format!("Type: {:?}", result.Type));
+            
+            BrowserError::ToolExecutionFailed {
                 tool: "get_markdown".to_string(),
-                reason: "No value returned from JavaScript".to_string(),
-            })?;
+                reason: format!("No value returned from JavaScript. {}", description),
+            }
+        })?;
 
         // The JavaScript returns a JSON string, so we need to parse it
         let extraction_result: ExtractionResult = if let Some(json_str) = result_value.as_str() {

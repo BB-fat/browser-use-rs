@@ -10,21 +10,15 @@
             throw new Error('READABILITY_SCRIPT not defined. Readability.js must be injected first.');
         }
         
-        // Check if Readability is already loaded globally to avoid re-evaluation
+        // Always re-evaluate Readability to ensure fresh instance
+        // This prevents issues with state pollution between multiple calls
+        // Use Function constructor instead of eval to create a clean scope
         var ReadabilityConstructor;
-        if (typeof window.__ReadabilityConstructor !== 'undefined') {
-            ReadabilityConstructor = window.__ReadabilityConstructor;
-        } else {
-            // Create a module object and execute the Readability script to get the constructor
-            var __readabilityModule = { exports: {} };
-            (function(module) {
-                eval(READABILITY_SCRIPT);
-            })(__readabilityModule);
-            ReadabilityConstructor = __readabilityModule.exports;
-            
-            // Cache it for future calls
-            window.__ReadabilityConstructor = ReadabilityConstructor;
-        }
+        var __readabilityModule = { exports: {} };
+        
+        // Create an isolated function scope for Readability
+        var loadReadability = new Function('module', 'exports', READABILITY_SCRIPT + '; return module.exports;');
+        ReadabilityConstructor = loadReadability(__readabilityModule, __readabilityModule.exports);
         
         if (!ReadabilityConstructor) {
             throw new Error('Failed to load Readability constructor');
@@ -32,6 +26,7 @@
         
         // Clone the document to avoid DOM flickering (visual artifacts)
         // This prevents the page from changing appearance during extraction
+        // Use deep clone with true parameter to ensure all children are cloned
         var documentClone = document.cloneNode(true);
         
         // Clean up unwanted elements from the clone
@@ -59,14 +54,24 @@
         
         if (!article) {
             // Readability failed to extract content, fall back to basic extraction
+            // This can happen on pages with insufficient content or unusual structure
+            var fallbackContent = document.body ? document.body.innerHTML : '';
+            var fallbackText = document.body ? document.body.textContent : '';
+            
             return JSON.stringify({
                 title: document.title || '',
-                content: document.body ? document.body.innerHTML : '',
-                textContent: document.body ? document.body.textContent : '',
+                content: fallbackContent,
+                textContent: fallbackText,
                 url: window.location.href,
                 excerpt: '',
                 byline: '',
-                readabilityFailed: true
+                siteName: '',
+                length: fallbackText.length,
+                lang: document.documentElement.lang || '',
+                dir: document.documentElement.dir || '',
+                publishedTime: '',
+                readabilityFailed: true,
+                error: 'Readability.parse() returned null - using fallback extraction'
             });
         }
         
@@ -93,7 +98,7 @@
             content: '',
             textContent: '',
             url: window.location.href,
-            error: error.message,
+            error: error.message + ' (stack: ' + (error.stack || 'no stack') + ')',
             readabilityFailed: true
         });
     }

@@ -346,6 +346,74 @@ fn test_table_conversion() {
     assert!(markdown.contains("London"), "Should contain city data");
 }
 
+/// Test calling get_markdown twice on the same page
+/// This reproduces the bug where the second call fails with "No value returned from JavaScript"
+#[test]
+#[ignore]
+fn test_double_execution_same_page() {
+    let session = BrowserSession::launch(LaunchOptions::new().headless(true))
+        .expect("Failed to launch browser");
+
+    // Create a simple article page
+    let html = r#"
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Double Execution Test</title>
+        </head>
+        <body>
+            <article>
+                <h1>Test Article</h1>
+                <p>This is paragraph one with some content.</p>
+                <p>This is paragraph two with more content.</p>
+                <p>This is paragraph three with even more content.</p>
+            </article>
+        </body>
+        </html>
+    "#;
+
+    let data_url = format!("data:text/html,{}", urlencoding::encode(html));
+    session.navigate(&data_url).expect("Failed to navigate");
+
+    std::thread::sleep(std::time::Duration::from_millis(500));
+
+    let tool = GetMarkdownTool::default();
+    let mut context = ToolContext::new(&session);
+
+    // First execution
+    info!("Executing get_markdown (first call)...");
+    let result1 = tool
+        .execute_typed(GetMarkdownParams::default(), &mut context)
+        .expect("First call to get_markdown should succeed");
+
+    assert!(result1.success, "First execution should succeed");
+    let data1 = result1.data.expect("First call should return data");
+    let markdown1 = data1["markdown"].as_str().expect("Should have markdown");
+    
+    info!("First call succeeded, markdown length: {}", markdown1.len());
+    assert!(markdown1.contains("Test Article"), "First call should contain title");
+    assert!(markdown1.contains("paragraph one"), "First call should contain content");
+
+    // Second execution on the same page - this is where the bug occurs
+    info!("Executing get_markdown (second call on same page)...");
+    let result2 = tool
+        .execute_typed(GetMarkdownParams::default(), &mut context)
+        .expect("Second call to get_markdown should also succeed");
+
+    assert!(result2.success, "Second execution should succeed");
+    let data2 = result2.data.expect("Second call should return data");
+    let markdown2 = data2["markdown"].as_str().expect("Should have markdown");
+    
+    info!("Second call succeeded, markdown length: {}", markdown2.len());
+    assert!(markdown2.contains("Test Article"), "Second call should contain title");
+    assert!(markdown2.contains("paragraph one"), "Second call should contain content");
+    
+    // The content should be the same (or at least very similar)
+    assert_eq!(markdown1, markdown2, "Both calls should return the same content");
+    
+    info!("Double execution test passed!");
+}
+
 /// Test requesting page beyond available pages
 #[test]
 #[ignore]
