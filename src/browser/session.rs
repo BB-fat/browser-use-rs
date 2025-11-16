@@ -23,7 +23,8 @@ impl BrowserSession {
     pub fn launch(options: LaunchOptions) -> Result<Self> {
         let mut launch_opts = headless_chrome::LaunchOptions::default();
 
-        launch_opts.idle_browser_timeout = Duration::from_secs(60 * 2);
+        // Set the browser's idle timeout to 1 hour (default is 30 seconds) to prevent the session from closing too soon
+        launch_opts.idle_browser_timeout = Duration::from_secs(60 * 60);
 
         // Configure headless mode
         launch_opts.headless = options.headless;
