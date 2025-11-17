@@ -1,6 +1,6 @@
 [package]
 name = "browser-use"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2024"
 authors = ["BB-fat"]
 description = "A lightweight Rust library for browser automation via Chrome DevTools Protocol (CDP), featuring a built-in Model Context Protocol (MCP) server for AI-driven browser automation"
@@ -16,10 +16,10 @@ path = "src/bin/mcp_server.rs"
 required-features = ["mcp-server"]
 
 [features]
-default = []
+default = ["mcp-handler"]
+mcp-handler = ["rmcp/macros", "rmcp/server"]
 mcp-server = [
-    "rmcp/macros",
-    "rmcp/server",
+    "mcp-handler",
     "rmcp/transport-io",
     "rmcp/transport-sse-server",
     "rmcp/transport-streamable-http-server",

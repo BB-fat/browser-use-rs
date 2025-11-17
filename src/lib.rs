@@ -92,14 +92,14 @@
 //! - [`dom`]: DOM extraction, element indexing, and tree representation
 //! - [`tools`]: Browser automation tools (navigate, click, input, extract, etc.)
 //! - [`error`]: Error types and result aliases
-//! - [`mcp`]: **Model Context Protocol server** (requires `mcp-server` feature) - **Start here for AI integration**
+//! - [`mcp`]: **Model Context Protocol server** (requires `mcp-handler` feature) - **Start here for AI integration**
 
 pub mod browser;
 pub mod dom;
 pub mod error;
 pub mod tools;
 
-#[cfg(feature = "mcp-server")]
+#[cfg(feature = "mcp-handler")]
 pub mod mcp;
 
 pub use browser::{BrowserSession, ConnectionOptions, LaunchOptions};
@@ -107,5 +107,5 @@ pub use dom::{BoundingBox, DomTree, ElementNode, ElementSelector, SelectorMap};
 pub use error::{BrowserError, Result};
 pub use tools::{Tool, ToolContext, ToolRegistry, ToolResult};
 
-#[cfg(feature = "mcp-server")]
+#[cfg(feature = "mcp-handler")]
 pub use mcp::BrowserServer;
