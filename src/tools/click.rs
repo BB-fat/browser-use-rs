@@ -6,24 +6,13 @@ use serde::{Deserialize, Serialize};
 /// Parameters for the click tool
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct ClickParams {
-    /// CSS selector or element index
-    #[serde(flatten)]
-    pub selector: ElementSelector,
-}
+    /// CSS selector (use either this or index, not both)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selector: Option<String>,
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-#[serde(untagged)]
-pub enum ElementSelector {
-    /// Select by CSS selector
-    Css {
-        /// CSS selector
-        selector: String,
-    },
-    /// Select by index from DOM tree
-    Index {
-        /// Element index
-        index: usize,
-    },
+    /// Element index from DOM tree (use either this or selector, not both)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub index: Option<usize>,
 }
 
 /// Tool for clicking elements
@@ -38,44 +27,63 @@ impl Tool for ClickTool {
     }
 
     fn execute_typed(&self, params: ClickParams, context: &mut ToolContext) -> Result<ToolResult> {
-        match params.selector {
-            ElementSelector::Css { selector } => {
-                let element = context.session.find_element(&selector)?;
-                element
-                    .click()
-                    .map_err(|e| BrowserError::ToolExecutionFailed {
-                        tool: "click".to_string(),
-                        reason: e.to_string(),
-                    })?;
-
-                Ok(ToolResult::success_with(serde_json::json!({
-                    "selector": selector,
-                    "method": "css"
-                })))
+        // Validate that exactly one selector method is provided
+        match (&params.selector, &params.index) {
+            (Some(_), Some(_)) => {
+                return Err(BrowserError::ToolExecutionFailed {
+                    tool: "click".to_string(),
+                    reason: "Cannot specify both 'selector' and 'index'. Use one or the other."
+                        .to_string(),
+                });
             }
-            ElementSelector::Index { index } => {
-                let css_selector = {
-                    let dom = context.get_dom()?;
-                    let selector_info = dom.get_selector(index).ok_or_else(|| {
-                        BrowserError::ElementNotFound(format!("No element with index {}", index))
-                    })?;
-                    selector_info.css_selector.clone()
-                };
-
-                let element = context.session.find_element(&css_selector)?;
-                element
-                    .click()
-                    .map_err(|e| BrowserError::ToolExecutionFailed {
-                        tool: "click".to_string(),
-                        reason: e.to_string(),
-                    })?;
-
-                Ok(ToolResult::success_with(serde_json::json!({
-                    "index": index,
-                    "selector": css_selector,
-                    "method": "index"
-                })))
+            (None, None) => {
+                return Err(BrowserError::ToolExecutionFailed {
+                    tool: "click".to_string(),
+                    reason: "Must specify either 'selector' or 'index'.".to_string(),
+                });
             }
+            _ => {}
+        }
+
+        if let Some(selector) = params.selector {
+            // CSS selector path
+            let element = context.session.find_element(&selector)?;
+            element
+                .click()
+                .map_err(|e| BrowserError::ToolExecutionFailed {
+                    tool: "click".to_string(),
+                    reason: e.to_string(),
+                })?;
+
+            Ok(ToolResult::success_with(serde_json::json!({
+                "selector": selector,
+                "method": "css"
+            })))
+        } else if let Some(index) = params.index {
+            // Index path
+            let css_selector = {
+                let dom = context.get_dom()?;
+                let selector_info = dom.get_selector(index).ok_or_else(|| {
+                    BrowserError::ElementNotFound(format!("No element with index {}", index))
+                })?;
+                selector_info.css_selector.clone()
+            };
+
+            let element = context.session.find_element(&css_selector)?;
+            element
+                .click()
+                .map_err(|e| BrowserError::ToolExecutionFailed {
+                    tool: "click".to_string(),
+                    reason: e.to_string(),
+                })?;
+
+            Ok(ToolResult::success_with(serde_json::json!({
+                "index": index,
+                "selector": css_selector,
+                "method": "index"
+            })))
+        } else {
+            unreachable!("Validation above ensures one field is Some")
         }
     }
 }
@@ -91,10 +99,8 @@ mod tests {
         });
 
         let params: ClickParams = serde_json::from_value(json).unwrap();
-        match params.selector {
-            ElementSelector::Css { selector } => assert_eq!(selector, "#my-button"),
-            _ => panic!("Expected CSS selector"),
-        }
+        assert_eq!(params.selector, Some("#my-button".to_string()));
+        assert_eq!(params.index, None);
     }
 
     #[test]
@@ -104,9 +110,30 @@ mod tests {
         });
 
         let params: ClickParams = serde_json::from_value(json).unwrap();
-        match params.selector {
-            ElementSelector::Index { index } => assert_eq!(index, 5),
-            _ => panic!("Expected index selector"),
-        }
+        assert_eq!(params.selector, None);
+        assert_eq!(params.index, Some(5));
+    }
+
+    #[test]
+    fn test_click_params_both_rejected() {
+        let json = serde_json::json!({
+            "selector": "#my-button",
+            "index": 5
+        });
+
+        let params: ClickParams = serde_json::from_value(json).unwrap();
+        // Validation happens during execution, not deserialization
+        assert_eq!(params.selector, Some("#my-button".to_string()));
+        assert_eq!(params.index, Some(5));
+    }
+
+    #[test]
+    fn test_click_params_none_rejected() {
+        let json = serde_json::json!({});
+
+        let params: ClickParams = serde_json::from_value(json).unwrap();
+        // Validation happens during execution, not deserialization
+        assert_eq!(params.selector, None);
+        assert_eq!(params.index, None);
     }
 }

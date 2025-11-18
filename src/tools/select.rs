@@ -6,27 +6,16 @@ use serde::{Deserialize, Serialize};
 /// Parameters for the select tool
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct SelectParams {
-    /// Element selector (CSS selector or index)
-    #[serde(flatten)]
-    pub selector: ElementSelector,
+    /// CSS selector (use either this or index, not both)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selector: Option<String>,
+
+    /// Element index from DOM tree (use either this or selector, not both)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub index: Option<usize>,
 
     /// Value to select in the dropdown
     pub value: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-#[serde(untagged)]
-pub enum ElementSelector {
-    /// Select by CSS selector
-    Css {
-        /// CSS selector
-        selector: String,
-    },
-    /// Select by index from DOM tree
-    Index {
-        /// Element index
-        index: usize,
-    },
 }
 
 /// Tool for selecting dropdown options
@@ -43,15 +32,34 @@ impl Tool for SelectTool {
     }
 
     fn execute_typed(&self, params: SelectParams, context: &mut ToolContext) -> Result<ToolResult> {
-        let css_selector = match params.selector {
-            ElementSelector::Css { selector } => selector,
-            ElementSelector::Index { index } => {
-                let dom = context.get_dom()?;
-                let selector_info = dom.get_selector(index).ok_or_else(|| {
-                    BrowserError::ElementNotFound(format!("No element with index {}", index))
-                })?;
-                selector_info.css_selector.clone()
+        // Validate that exactly one selector method is provided
+        match (&params.selector, &params.index) {
+            (Some(_), Some(_)) => {
+                return Err(BrowserError::ToolExecutionFailed {
+                    tool: "select".to_string(),
+                    reason: "Cannot specify both 'selector' and 'index'. Use one or the other."
+                        .to_string(),
+                });
             }
+            (None, None) => {
+                return Err(BrowserError::ToolExecutionFailed {
+                    tool: "select".to_string(),
+                    reason: "Must specify either 'selector' or 'index'.".to_string(),
+                });
+            }
+            _ => {}
+        }
+
+        let css_selector = if let Some(selector) = params.selector {
+            selector
+        } else if let Some(index) = params.index {
+            let dom = context.get_dom()?;
+            let selector_info = dom.get_selector(index).ok_or_else(|| {
+                BrowserError::ElementNotFound(format!("No element with index {}", index))
+            })?;
+            selector_info.css_selector.clone()
+        } else {
+            unreachable!("Validation above ensures one field is Some")
         };
         let value = params.value;
 
@@ -112,10 +120,8 @@ mod tests {
         });
 
         let params: SelectParams = serde_json::from_value(json).unwrap();
-        match params.selector {
-            ElementSelector::Css { selector } => assert_eq!(selector, "#country-select"),
-            _ => panic!("Expected CSS selector"),
-        }
+        assert_eq!(params.selector, Some("#country-select".to_string()));
+        assert_eq!(params.index, None);
         assert_eq!(params.value, "us");
     }
 
@@ -127,10 +133,8 @@ mod tests {
         });
 
         let params: SelectParams = serde_json::from_value(json).unwrap();
-        match params.selector {
-            ElementSelector::Index { index } => assert_eq!(index, 5),
-            _ => panic!("Expected index selector"),
-        }
+        assert_eq!(params.selector, None);
+        assert_eq!(params.index, Some(5));
         assert_eq!(params.value, "option2");
     }
 }

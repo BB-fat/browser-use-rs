@@ -6,24 +6,13 @@ use serde::{Deserialize, Serialize};
 /// Parameters for the hover tool
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct HoverParams {
-    /// Element selector (CSS selector or index)
-    #[serde(flatten)]
-    pub selector: ElementSelector,
-}
+    /// CSS selector (use either this or index, not both)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selector: Option<String>,
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-#[serde(untagged)]
-pub enum ElementSelector {
-    /// Select by CSS selector
-    Css {
-        /// CSS selector
-        selector: String,
-    },
-    /// Select by index from DOM tree
-    Index {
-        /// Element index
-        index: usize,
-    },
+    /// Element index from DOM tree (use either this or selector, not both)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub index: Option<usize>,
 }
 
 /// Tool for hovering over elements
@@ -40,15 +29,34 @@ impl Tool for HoverTool {
     }
 
     fn execute_typed(&self, params: HoverParams, context: &mut ToolContext) -> Result<ToolResult> {
-        let css_selector = match params.selector {
-            ElementSelector::Css { selector } => selector,
-            ElementSelector::Index { index } => {
-                let dom = context.get_dom()?;
-                let selector_info = dom.get_selector(index).ok_or_else(|| {
-                    BrowserError::ElementNotFound(format!("No element with index {}", index))
-                })?;
-                selector_info.css_selector.clone()
+        // Validate that exactly one selector method is provided
+        match (&params.selector, &params.index) {
+            (Some(_), Some(_)) => {
+                return Err(BrowserError::ToolExecutionFailed {
+                    tool: "hover".to_string(),
+                    reason: "Cannot specify both 'selector' and 'index'. Use one or the other."
+                        .to_string(),
+                });
             }
+            (None, None) => {
+                return Err(BrowserError::ToolExecutionFailed {
+                    tool: "hover".to_string(),
+                    reason: "Must specify either 'selector' or 'index'.".to_string(),
+                });
+            }
+            _ => {}
+        }
+
+        let css_selector = if let Some(selector) = params.selector {
+            selector
+        } else if let Some(index) = params.index {
+            let dom = context.get_dom()?;
+            let selector_info = dom.get_selector(index).ok_or_else(|| {
+                BrowserError::ElementNotFound(format!("No element with index {}", index))
+            })?;
+            selector_info.css_selector.clone()
+        } else {
+            unreachable!("Validation above ensures one field is Some")
         };
 
         // Find the element (to verify it exists)
