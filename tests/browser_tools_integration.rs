@@ -44,9 +44,8 @@ fn test_select_tool() {
     let result = tool
         .execute_typed(
             SelectParams {
-                selector: browser_use::tools::select::ElementSelector::Css {
-                    selector: "#country".to_string(),
-                },
+                selector: Some("#country".to_string()),
+                index: None,
                 value: "uk".to_string(),
             },
             &mut context,
@@ -102,9 +101,8 @@ fn test_hover_tool() {
     let result = tool
         .execute_typed(
             HoverParams {
-                selector: browser_use::tools::hover::ElementSelector::Css {
-                    selector: "#hover-btn".to_string(),
-                },
+                selector: Some("#hover-btn".to_string()),
+                index: None,
             },
             &mut context,
         )
@@ -258,7 +256,8 @@ fn test_select_with_index() {
     // Try to select using index (the select element should have index 0 since it's the first interactive element)
     let result = tool.execute_typed(
         SelectParams {
-            selector: browser_use::tools::select::ElementSelector::Index { index: 0 },
+            selector: None,
+            index: Some(0),
             value: "green".to_string(),
         },
         &mut context,

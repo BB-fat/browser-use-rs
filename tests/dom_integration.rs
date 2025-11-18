@@ -144,10 +144,7 @@ fn test_read_links() {
 #[test]
 #[ignore]
 fn test_get_clickable_elements() {
-    use browser_use::tools::{
-        GetClickableElementsParams, Tool, ToolContext,
-        get_clickable_elements::GetClickableElementsTool,
-    };
+    use browser_use::tools::{SnapshotParams, Tool, ToolContext, snapshot::SnapshotTool};
 
     let session = BrowserSession::launch(LaunchOptions::new().headless(true))
         .expect("Failed to launch browser");
@@ -178,44 +175,42 @@ fn test_get_clickable_elements() {
     std::thread::sleep(std::time::Duration::from_millis(500));
 
     // Create tool and context
-    let tool = GetClickableElementsTool::default();
+    let tool = SnapshotTool::default();
     let mut context = ToolContext::new(&session);
 
     // Execute the tool
     let result = tool
-        .execute_typed(GetClickableElementsParams {}, &mut context)
-        .expect("Failed to execute get_clickable_elements tool");
+        .execute_typed(SnapshotParams {}, &mut context)
+        .expect("Failed to execute snapshot tool");
 
     // Verify the result
     assert!(result.success);
     assert!(result.data.is_some());
 
     let data = result.data.unwrap();
-    let elements_string = data["elements"].as_str().expect("No elements field");
-    let count = data["count"].as_u64().expect("No count field");
+    let snapshot_string = data["snapshot"].as_str().expect("No snapshot field");
+    let count = data["interactive_count"]
+        .as_u64()
+        .expect("No interactive_count field");
 
-    // Debug: Print the elements to see what we got
-    info!("Clickable elements found: {}", count);
-    info!("Elements:\n{}", elements_string);
+    // Debug: Print the snapshot to see what we got
+    info!("Interactive elements found: {}", count);
+    info!("Snapshot:\n{}", snapshot_string);
 
     // Verify we found interactive elements
     // Note: Actual count may vary due to visibility detection in data: URLs
     assert!(count >= 1, "Expected at least 1 interactive element");
 
-    // Verify format: should contain [index]<tag>...</tag> patterns
+    // Verify format: should contain [index] patterns for interactive elements
     if count > 0 {
-        assert!(elements_string.contains("["), "Missing index brackets");
-        assert!(elements_string.contains("<"), "Missing HTML tags");
+        assert!(snapshot_string.contains("["), "Missing index brackets");
     }
 }
 
 #[test]
 #[ignore]
 fn test_get_clickable_elements_empty() {
-    use browser_use::tools::{
-        GetClickableElementsParams, Tool, ToolContext,
-        get_clickable_elements::GetClickableElementsTool,
-    };
+    use browser_use::tools::{SnapshotParams, Tool, ToolContext, snapshot::SnapshotTool};
 
     let session = BrowserSession::launch(LaunchOptions::new().headless(true))
         .expect("Failed to launch browser");
@@ -238,32 +233,30 @@ fn test_get_clickable_elements_empty() {
 
     std::thread::sleep(std::time::Duration::from_millis(500));
 
-    let tool = GetClickableElementsTool::default();
+    let tool = SnapshotTool::default();
     let mut context = ToolContext::new(&session);
 
     let result = tool
-        .execute_typed(GetClickableElementsParams {}, &mut context)
+        .execute_typed(SnapshotParams {}, &mut context)
         .expect("Failed to execute");
 
     assert!(result.success);
     let data = result.data.unwrap();
-    let count = data["count"].as_u64().expect("No count field");
-    let elements = data["elements"].as_str().expect("No elements field");
+    let count = data["interactive_count"]
+        .as_u64()
+        .expect("No interactive_count field");
+    let snapshot = data["snapshot"].as_str().expect("No snapshot field");
 
-    info!("Empty page - count: {}, elements: '{}'", count, elements);
+    info!("Empty page - count: {}, snapshot: '{}'", count, snapshot);
 
     // Should have 0 interactive elements
     assert_eq!(count, 0);
-    assert_eq!(elements, "");
 }
 
 #[test]
 #[ignore]
 fn test_get_clickable_elements_with_text() {
-    use browser_use::tools::{
-        GetClickableElementsParams, Tool, ToolContext,
-        get_clickable_elements::GetClickableElementsTool,
-    };
+    use browser_use::tools::{SnapshotParams, Tool, ToolContext, snapshot::SnapshotTool};
 
     let session = BrowserSession::launch(LaunchOptions::new().headless(true))
         .expect("Failed to launch browser");
@@ -284,29 +277,31 @@ fn test_get_clickable_elements_with_text() {
 
     std::thread::sleep(std::time::Duration::from_millis(500));
 
-    let tool = GetClickableElementsTool::default();
+    let tool = SnapshotTool::default();
     let mut context = ToolContext::new(&session);
 
     let result = tool
-        .execute_typed(GetClickableElementsParams {}, &mut context)
+        .execute_typed(SnapshotParams {}, &mut context)
         .expect("Failed to execute");
 
     assert!(result.success);
     let data = result.data.unwrap();
-    let elements_string = data["elements"].as_str().expect("No elements field");
-    let count = data["count"].as_u64().expect("No count field");
+    let snapshot_string = data["snapshot"].as_str().expect("No snapshot field");
+    let count = data["interactive_count"]
+        .as_u64()
+        .expect("No interactive_count field");
 
-    info!("Elements with text:\n{}", elements_string);
+    info!("Snapshot with text:\n{}", snapshot_string);
 
     assert!(count >= 1, "Expected at least 1 interactive element");
 
-    // If we have elements, verify they contain text content
+    // If we have elements, verify the snapshot contains interactive elements with indices
     if count > 0 {
-        // Should contain the tag names
-        let has_button = elements_string.contains("button");
-        let has_link = elements_string.contains("a");
-
-        assert!(has_button || has_link, "Expected button or link elements");
+        // Should contain index markers
+        assert!(
+            snapshot_string.contains("["),
+            "Expected index markers in snapshot"
+        );
     }
 }
 

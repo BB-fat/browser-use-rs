@@ -65,7 +65,7 @@ register_mcp_tools! {
     browser_read_links => tools::read_links::ReadLinksTool, "Read all links on the current page";
     browser_evaluate => tools::evaluate::EvaluateTool, "Execute JavaScript code in the browser context";
     browser_screenshot => tools::screenshot::ScreenshotTool, "Capture a screenshot of the current page";
-    browser_get_clickable_elements => tools::get_clickable_elements::GetClickableElementsTool, "Get all clickable/interactive elements on the page";
+    browser_snapshot => tools::snapshot::SnapshotTool, "Get a snapshot of the page with indexed interactive elements";
 
     // ---- Interaction ----
     browser_click => tools::click::ClickTool, "Click on an element specified by CSS selector or index";
