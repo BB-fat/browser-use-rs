@@ -60,18 +60,17 @@ register_mcp_tools! {
     browser_close => tools::close::CloseTool, "Close the browser when the task is complete";
 
     // ---- Page Content and Extraction ----
-    browser_get_text => tools::extract::ExtractContentTool, "Extract text or HTML content from the page or an element";
-    browser_get_markdown => tools::markdown::GetMarkdownTool, "Get the markdown content of the current page";
-    browser_read_links => tools::read_links::ReadLinksTool, "Read all links on the current page";
-    browser_evaluate => tools::evaluate::EvaluateTool, "Execute JavaScript code in the browser context";
+    browser_get_markdown => tools::markdown::GetMarkdownTool, "Get the markdown content of the current page (use this tool only for information extraction; for interaction use the snapshot tool instead)";
+    browser_snapshot => tools::snapshot::SnapshotTool, "Get a snapshot of the current page with indexed interactive elements for interaction";
     browser_screenshot => tools::screenshot::ScreenshotTool, "Capture a screenshot of the current page";
-    browser_snapshot => tools::snapshot::SnapshotTool, "Get a snapshot of the page with indexed interactive elements";
+    // browser_get_text => tools::extract::ExtractContentTool, "Extract text or HTML content from the page or an element";
+    browser_evaluate => tools::evaluate::EvaluateTool, "Execute JavaScript code in the browser context";
 
     // ---- Interaction ----
-    browser_click => tools::click::ClickTool, "Click on an element specified by CSS selector or index";
-    browser_hover => tools::hover::HoverTool, "Hover over an element specified by CSS selector or index";
-    browser_select => tools::select::SelectTool, "Select an option in a dropdown element by CSS selector or index";
-    browser_form_input_fill => tools::input::InputTool, "Type text into an input element";
+    browser_click => tools::click::ClickTool, "Click on an element specified by CSS selector or index (index obtained from browser_snapshot tool)";
+    browser_hover => tools::hover::HoverTool, "Hover over an element specified by CSS selector or index (index obtained from browser_snapshot tool)";
+    browser_select => tools::select::SelectTool, "Select an option in a dropdown element by CSS selector or index (index obtained from browser_snapshot tool)";
+    browser_input_fill => tools::input::InputTool, "Type text into an input element specified by CSS selector or index (index obtained from browser_snapshot tool)";
     browser_press_key => tools::press_key::PressKeyTool, "Press a key on the keyboard";
     browser_scroll => tools::scroll::ScrollTool, "Scroll the page by a specified amount or to the bottom";
     browser_wait => tools::wait::WaitTool, "Wait for an element to appear on the page";
