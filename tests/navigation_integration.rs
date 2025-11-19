@@ -26,7 +26,7 @@ fn test_go_back_tool() {
     std::thread::sleep(std::time::Duration::from_millis(500));
 
     // Verify we're on page 2
-    let current_url = session.tab().get_url();
+    let current_url = session.tab().unwrap().get_url();
     assert!(current_url.contains("Page 2"));
 
     // Create tool and context
@@ -53,7 +53,7 @@ fn test_go_back_tool() {
     std::thread::sleep(std::time::Duration::from_millis(500));
 
     // Verify we went back to page 1
-    let new_url = session.tab().get_url();
+    let new_url = session.tab().unwrap().get_url();
     assert!(new_url.contains("Page 1"));
 }
 
@@ -83,7 +83,7 @@ fn test_go_forward_tool() {
     std::thread::sleep(std::time::Duration::from_millis(500));
 
     // Verify we're on page 1
-    let current_url = session.tab().get_url();
+    let current_url = session.tab().unwrap().get_url();
     assert!(current_url.contains("Page 1"));
 
     // Create tool and context
@@ -113,7 +113,7 @@ fn test_go_forward_tool() {
     std::thread::sleep(std::time::Duration::from_millis(500));
 
     // Verify we went forward to page 2
-    let new_url = session.tab().get_url();
+    let new_url = session.tab().unwrap().get_url();
     assert!(new_url.contains("Page 2"));
 }
 
@@ -178,7 +178,7 @@ fn test_navigation_workflow() {
     std::thread::sleep(std::time::Duration::from_millis(500));
 
     // Verify we're on page 1
-    let current_url = session.tab().get_url();
+    let current_url = session.tab().unwrap().get_url();
     assert!(current_url.contains("Page 1"));
 
     // Go forward to page 2
@@ -193,7 +193,7 @@ fn test_navigation_workflow() {
     std::thread::sleep(std::time::Duration::from_millis(500));
 
     // Verify we're on page 2
-    let current_url = session.tab().get_url();
+    let current_url = session.tab().unwrap().get_url();
     assert!(current_url.contains("Page 2"));
 }
 

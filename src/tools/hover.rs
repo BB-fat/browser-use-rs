@@ -68,7 +68,7 @@ impl Tool for HoverTool {
 
         let result = context
             .session
-            .tab()
+            .tab()?
             .evaluate(&hover_js, false)
             .map_err(|e| BrowserError::ToolExecutionFailed {
                 tool: "hover".to_string(),

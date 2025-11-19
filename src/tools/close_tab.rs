@@ -24,7 +24,7 @@ impl Tool for CloseTabTool {
         context: &mut ToolContext,
     ) -> Result<ToolResult> {
         // Get the current tab info before closing
-        let active_tab = context.session.tab();
+        let active_tab = context.session.tab()?;
         let tab_title = active_tab.get_title().unwrap_or_default();
         let tab_url = active_tab.get_url();
 
@@ -32,7 +32,7 @@ impl Tool for CloseTabTool {
         let tabs = context.session.get_tabs()?;
         let current_index = tabs
             .iter()
-            .position(|tab| std::sync::Arc::ptr_eq(tab, active_tab))
+            .position(|tab| std::sync::Arc::ptr_eq(tab, &active_tab))
             .unwrap_or(0);
 
         // Close the active tab

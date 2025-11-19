@@ -71,7 +71,7 @@ impl Tool for SelectTool {
 
         let result = context
             .session
-            .tab()
+            .tab()?
             .evaluate(&select_js, false)
             .map_err(|e| BrowserError::ToolExecutionFailed {
                 tool: "select".to_string(),

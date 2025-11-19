@@ -31,7 +31,7 @@ impl Tool for EvaluateTool {
     ) -> Result<ToolResult> {
         let result = context
             .session
-            .tab()
+            .tab()?
             .evaluate(&params.code, params.await_promise)
             .map_err(|e| BrowserError::EvaluationFailed(e.to_string()))?;
 

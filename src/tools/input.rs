@@ -63,14 +63,15 @@ impl Tool for InputTool {
             unreachable!("Validation above ensures one field is Some")
         };
 
-        let element = context.session.find_element(&css_selector)?;
+        let tab = context.session.tab()?;
+        let element = context.session.find_element(&tab, &css_selector)?;
 
         if params.clear {
             element.click().ok(); // Focus
             // Clear with Ctrl+A and Delete
-            context.session.tab().press_key("End").ok();
+            tab.press_key("End").ok();
             for _ in 0..params.text.len() + 100 {
-                context.session.tab().press_key("Backspace").ok();
+                tab.press_key("Backspace").ok();
             }
         }
 

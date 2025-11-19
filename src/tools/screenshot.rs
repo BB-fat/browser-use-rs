@@ -30,7 +30,7 @@ impl Tool for ScreenshotTool {
     ) -> Result<ToolResult> {
         let screenshot_data = context
             .session
-            .tab()
+            .tab()?
             .capture_screenshot(
                 headless_chrome::protocol::cdp::Page::CaptureScreenshotFormatOption::Png,
                 None,

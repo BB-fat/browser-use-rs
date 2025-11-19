@@ -34,7 +34,8 @@ impl Tool for ExtractContentTool {
         context: &mut ToolContext,
     ) -> Result<ToolResult> {
         let content = if let Some(selector) = &params.selector {
-            let element = context.session.find_element(selector)?;
+            let tab = context.session.tab()?;
+            let element = context.session.find_element(&tab, selector)?;
 
             if params.format == "html" {
                 element
@@ -61,7 +62,7 @@ impl Tool for ExtractContentTool {
 
             let result = context
                 .session
-                .tab()
+                .tab()?
                 .evaluate(js_code, false)
                 .map_err(|e| BrowserError::EvaluationFailed(e.to_string()))?;
 

@@ -44,7 +44,7 @@ impl Tool for ReadLinksTool {
 
         let result = context
             .session
-            .tab()
+            .tab()?
             .evaluate(js_code, false)
             .map_err(|e| BrowserError::EvaluationFailed(e.to_string()))?;
 

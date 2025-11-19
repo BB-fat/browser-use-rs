@@ -33,7 +33,7 @@ impl Tool for WaitTool {
 
         context
             .session
-            .tab()
+            .tab()?
             .wait_for_element_with_custom_timeout(
                 &params.selector,
                 Duration::from_millis(params.timeout_ms),

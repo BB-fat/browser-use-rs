@@ -38,13 +38,13 @@ impl Tool for TabListTool {
     ) -> Result<ToolResult> {
         // Get all tabs
         let tabs = context.session.get_tabs()?;
-        let active_tab = context.session.tab();
+        let active_tab = context.session.tab()?;
 
         // Build tab info list
         let mut tab_list = Vec::new();
         for (index, tab) in tabs.iter().enumerate() {
             // Check if this is the active tab by comparing Arc pointers
-            let is_active = std::sync::Arc::ptr_eq(tab, active_tab);
+            let is_active = std::sync::Arc::ptr_eq(tab, &active_tab);
 
             // Get tab title (fallback to empty string on error)
             let title = tab.get_title().unwrap_or_default();

@@ -26,7 +26,7 @@ impl Tool for PressKeyTool {
         params: PressKeyParams,
         context: &mut ToolContext,
     ) -> Result<ToolResult> {
-        context.session.tab().press_key(&params.key).map_err(|e| {
+        context.session.tab()?.press_key(&params.key).map_err(|e| {
             BrowserError::ToolExecutionFailed {
                 tool: "press_key".to_string(),
                 reason: e.to_string(),

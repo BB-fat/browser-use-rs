@@ -32,7 +32,7 @@ impl Tool for GoBackTool {
             })?;
 
         // Get current URL after going back
-        let current_url = context.session.tab().get_url();
+        let current_url = context.session.tab()?.get_url();
 
         Ok(ToolResult::success_with(serde_json::json!({
             "message": "Navigated back in history",

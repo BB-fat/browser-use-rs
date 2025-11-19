@@ -151,6 +151,7 @@ fn test_press_key_enter() {
     // Focus the input element first
     session
         .tab()
+        .unwrap()
         .find_element("#input1")
         .expect("Input not found")
         .click()
@@ -184,6 +185,7 @@ fn test_press_key_enter() {
     // Verify that the event was triggered
     let output = session
         .tab()
+        .unwrap()
         .wait_for_element("#output")
         .ok()
         .and_then(|elem| elem.get_inner_text().ok());

@@ -66,7 +66,7 @@ impl Tool for GetMarkdownTool {
         // Execute the JavaScript to extract and convert content
         let result = context
             .session
-            .tab()
+            .tab()?
             .evaluate(&js_code, false)
             .map_err(|e| BrowserError::EvaluationFailed(e.to_string()))?;
 

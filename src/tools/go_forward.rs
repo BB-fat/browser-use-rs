@@ -32,7 +32,7 @@ impl Tool for GoForwardTool {
             })?;
 
         // Get current URL after going forward
-        let current_url = context.session.tab().get_url();
+        let current_url = context.session.tab()?.get_url();
 
         Ok(ToolResult::success_with(serde_json::json!({
             "message": "Navigated forward in history",

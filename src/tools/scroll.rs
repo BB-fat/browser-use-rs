@@ -33,7 +33,7 @@ impl Tool for ScrollTool {
 
         let result = context
             .session
-            .tab()
+            .tab()?
             .evaluate(&scroll_js, true)
             .map_err(|e| BrowserError::ToolExecutionFailed {
                 tool: "scroll".to_string(),

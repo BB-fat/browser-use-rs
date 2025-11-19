@@ -47,7 +47,8 @@ impl Tool for ClickTool {
 
         if let Some(selector) = params.selector {
             // CSS selector path
-            let element = context.session.find_element(&selector)?;
+            let tab = context.session.tab()?;
+            let element = context.session.find_element(&tab, &selector)?;
             element
                 .click()
                 .map_err(|e| BrowserError::ToolExecutionFailed {
@@ -69,7 +70,8 @@ impl Tool for ClickTool {
                 selector.clone()
             };
 
-            let element = context.session.find_element(&css_selector)?;
+            let tab = context.session.tab()?;
+            let element = context.session.find_element(&tab, &css_selector)?;
             element
                 .click()
                 .map_err(|e| BrowserError::ToolExecutionFailed {
