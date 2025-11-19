@@ -1,4 +1,5 @@
 use crate::error::{BrowserError, Result};
+use crate::tools::snapshot::{RenderMode, render_aria_tree};
 use crate::tools::{Tool, ToolContext, ToolResult};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -82,20 +83,14 @@ impl Tool for InputTool {
                 reason: e.to_string(),
             })?;
 
-        let result_json = if let Some(index) = params.index {
-            serde_json::json!({
-                "index": index,
-                "selector": css_selector,
-                "text_length": params.text.len(),
-                "method": "index"
-            })
-        } else {
-            serde_json::json!({
-                "selector": css_selector,
-                "text_length": params.text.len(),
-                "method": "css"
-            })
+        let snapshot = {
+            let dom = context.get_dom()?;
+            render_aria_tree(&dom.root, RenderMode::Ai, None)
         };
+
+        let result_json = serde_json::json!({
+            "snapshot": snapshot
+        });
 
         Ok(ToolResult::success_with(result_json))
     }

@@ -1,4 +1,5 @@
 use crate::error::Result;
+use crate::tools::snapshot::{RenderMode, render_aria_tree};
 use crate::tools::utils::normalize_url;
 use crate::tools::{Tool, ToolContext, ToolResult};
 use schemars::JsonSchema;
@@ -49,10 +50,13 @@ impl Tool for NewTabTool {
             crate::error::BrowserError::TabOperationFailed(format!("Failed to activate tab: {}", e))
         })?;
 
+        let snapshot = {
+            let dom = context.get_dom()?;
+            render_aria_tree(&dom.root, RenderMode::Ai, None)
+        };
+
         Ok(ToolResult::success_with(serde_json::json!({
-            "original_url": params.url,
-            "normalized_url": normalized_url,
-            "message": format!("Opened new tab with URL: {}", normalized_url)
+            "snapshot": snapshot
         })))
     }
 }

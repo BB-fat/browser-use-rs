@@ -1,4 +1,5 @@
 use crate::error::Result;
+use crate::tools::snapshot::{RenderMode, render_aria_tree};
 use crate::tools::utils::normalize_url;
 use crate::tools::{Tool, ToolContext, ToolResult};
 use schemars::JsonSchema;
@@ -46,10 +47,13 @@ impl Tool for NavigateTool {
             context.session.wait_for_navigation()?;
         }
 
+        let snapshot = {
+            let dom = context.get_dom()?;
+            render_aria_tree(&dom.root, RenderMode::Ai, None)
+        };
+
         Ok(ToolResult::success_with(serde_json::json!({
-            "original_url": params.url,
-            "normalized_url": normalized_url,
-            "waited": params.wait_for_load
+            "snapshot": snapshot
         })))
     }
 }
