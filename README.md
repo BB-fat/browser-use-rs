@@ -13,11 +13,8 @@ A lightweight Rust library for browser automation via Chrome DevTools Protocol (
 
 ## Installation
 
-Add to your `Cargo.toml`:
-
-```toml
-[dependencies]
-browser-use = "0.1.0"
+```bash
+cargo add browser-use
 ```
 
 ## Quick Start
